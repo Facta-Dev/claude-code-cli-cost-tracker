@@ -40,6 +40,7 @@ Claude Code session and the line appears:
 ```bash
 cccost --list-repos                     # repo names + session counts only
 python3 ~/.claude/cccost.py daily --repo my-project
+python3 ~/.claude/cccost.py models --repo my-project   # which model burns the budget
 ```
 
 Or from inside Claude Code:
@@ -49,8 +50,10 @@ Or from inside Claude Code:
 ```
 
 First run prints repo names + session counts only — no tokens, no costs, no
-content — to choose what to bill. All reports take `--repo` (repeatable);
-`--last N` window; `--json`; `--off-peak` (Ollama Cloud rows only).
+content — to choose what to bill. All billing reports take `--repo`
+(repeatable); `--last N` window; `--json`; `--off-peak` (Ollama rows only,
+per turn by timestamp). Two machines at once? Export on each with `cccost
+report` and `cccost merge DIR DIR --out-dir DIR` combines the CSVs.
 
 ## 45 seconds, really
 

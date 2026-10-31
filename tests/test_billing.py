@@ -411,6 +411,38 @@ def test_merge_rejects_bad_inputs():
             assert proc.returncode == 0 and "session_id" in proc.stderr
 
 
+def test_off_peak_window_semantics():
+    """The UTC window: weekends all day; weekdays outside 12:00-18:00 UTC."""
+    from cccost.billing import in_off_peak_window
+    from datetime import datetime, timezone
+    d = lambda s: datetime.fromisoformat(s).replace(tzinfo=timezone.utc)
+    assert in_off_peak_window(d("2026-10-30T09:00:00")) is True   # Fri, off-window
+    assert in_off_peak_window(d("2026-10-30T14:00:00")) is False  # Fri, peak window
+    assert in_off_peak_window(d("2026-10-31T14:00:00")) is True   # Saturday
+    assert in_off_peak_window(d("2026-10-30T12:00:00")) is False  # window start inclusive
+    assert in_off_peak_window(d("2026-10-30T18:00:00")) is True   # 18:00 already off
+    # off-peak discount composes per turn: an off-window Ollama turn halves,
+    # a peak-window one doesn't, and a Claude row never halves either way.
+    prices = Prices(ROOT / "prices.json")
+    prices.off_peak = True
+    tok = usage_tokens({"input_tokens": 1_000_000})
+    assert prices.cost("glm-5.3-flash", tok, "2026-10-30T09:00:00Z") == 0.075
+    assert prices.cost("glm-5.3-flash", tok, "2026-10-30T14:00:00Z") == 0.15
+    assert prices.cost("claude-sonnet-5", tok, "2026-10-30T09:00:00Z") == 2.00
+    assert prices.cost("glm-5.3-flash", tok, None) == 0.075  # undated understates
+
+
+def test_statusline_bills_tier_turns():
+    """The haiku tier turn flows through the status line too (session B)."""
+    with tempfile.TemporaryDirectory() as cd:
+        out = statusline(
+            {"session_id": "sessB", "transcript_path": str(SLUG / "sessB.jsonl"),
+             "workspace": {"current_dir": "/Users/demo/repos/cost-lab"}},
+            cd,
+        )
+        assert "$8.69" in out, "sessB = 0.59+3.00+2.00+2.00+0.75+0.35(tier)"
+
+
 def main() -> int:
     failures = 0
     for name, fn in sorted(globals().items()):

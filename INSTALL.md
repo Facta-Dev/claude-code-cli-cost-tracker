@@ -53,11 +53,15 @@ echo '{"workspace":{"current_dir":"/tmp/demo"},"cost":{"total_cost_usd":2.47},"m
 ```bash
 python3 ~/.claude/cccost.py --list-repos                    # names + counts only
 python3 ~/.claude/cccost.py daily --repo my-project
+python3 ~/.claude/cccost.py models --repo my-project        # per-model spend
+python3 ~/.claude/cccost.py merge machineA machineB --out-dir merged
 ```
 
 Inside Claude Code, `/cccost daily --repo my-project` runs the installed
-CLI. The command file pins `allowed-tools` to the installed path — if you
-installed elsewhere, edit `commands/cccost.md` accordingly.
+CLI (any subcommand works: `daily`/`weekly`/`monthly`/`session`/`models`/
+`report`; `merge` exists too). The command file pins `allowed-tools` to the
+installed path — if you installed elsewhere, edit `commands/cccost.md`
+accordingly.
 
 ## 4 · Environment overrides
 

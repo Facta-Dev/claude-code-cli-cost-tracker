@@ -91,6 +91,7 @@ def main(projects_dir: Path) -> None:
         line({"type": "assistant", "message": {"id": "msg_bad", "model": "glm-5.3-flash", "usage": "corrupt"}}),
         line({"type": "user", "message": {"role": "user", "content": "next"}}),
         assistant("msg_004", "<synthetic>", {"input_tokens": 0, "output_tokens": 0}, "09:00:30Z"),
+        "[1, 2, 3]",  # valid JSON, not an object — the shape guard must skip it
         assistant("msg_006", "claude-opus-5-5",
                   fast_usage({"input_tokens": 200_000, "output_tokens": 50_000,
                               "cache_read_input_tokens": 300_000}), "09:00:40Z"),

@@ -32,7 +32,8 @@ by [@ryoppippi](https://github.com/ryoppippi), MIT) — see
 | `cccost/billing.py` | The one pricing seam: usage token classes, model resolution (`:cloud`, `[1m]`, aliases), per-turn cost, off-peak |
 | `cccost/transcript.py` | Transcript shape knowledge: per-line extraction, `message.id` dedupe, session discovery, repo naming |
 | `cccost/analysis.py` | Discovery-to-rows pipeline shared by every report; CSV writer |
-| `cccost/reports.py` | The aggregate tables: daily / weekly / monthly / session |
+| `cccost/reports.py` | The aggregate tables: daily / weekly / monthly / session / models |
+| `cccost/merge.py` | Cross-machine export merge: sessions/turns dedupe on ids, higher-cost wins, CSV-only plumbing |
 | `cccost/session_state.py` | The status line's incremental per-session billing store (byte offsets per transcript file) |
 | `cccost/report.py` | The analyzer's text report (byte-compat surface) |
 | `commands/cccost.md` | `/cccost` slash command for Claude Code (reports from inside a session) |
@@ -86,6 +87,7 @@ cccost report --repo my-project           # full baseline + CSVs
 cccost daily --repo my-project --last 30  # window, not all history
 cccost daily --repo my-project --json     # machine-readable
 cccost models --repo my-project           # which model burns the budget
+cccost merge machineA machineB --out-dir merged  # dedupe multi-machine exports (CSV-only)
 ```
 
 ## Status line
@@ -103,6 +105,8 @@ echo '{"workspace":{"current_dir":"/tmp/demo"},"cost":{"total_cost_usd":2.47},"m
 work-adjacent sessions, and a cost report is the kind of artifact that gets
 pasted somewhere public. Inclusion is always explicit; `--list-repos` shows
 repo names + counts only, so you can choose without reading content.
+The one carve-out is `cccost merge`: CSV-only plumbing over already-billed
+exports — it scans no transcripts and needs no `--repo`.
 
 ## Caveats
 
