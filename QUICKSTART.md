@@ -8,7 +8,7 @@ Nothing leaves your machine; stdlib-only Python 3.10+.
 ```bash
 git clone https://github.com/Facta-Dev/claude-code-cli-cost-tracker
 cd claude-code-cli-cost-tracker
-python3 tests/test_billing.py        # 13 checks, no dependencies needed
+python3 tests/test_billing.py        # smoke: the suite, no dependencies needed
 mkdir -p ~/.claude/commands
 cp -r cccost statusline.py cccost.py prices.json ~/.claude/
 cp commands/cccost.md ~/.claude/commands/
