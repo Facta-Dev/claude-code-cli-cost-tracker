@@ -133,6 +133,15 @@ it standalone:
 echo '{"workspace":{"current_dir":"/tmp/demo"},"cost":{"total_cost_usd":2.47},"model":{"display_name":"GLM 5.3 Flash"}}' | python3 statusline.py
 ```
 
+The proof — live status line on a real session (cost turns yellow at $1, red at $5):
+
+![live status line](docs/images/iterm-statusline.png)
+
+And the per-session state side — iTerm2's Session Status with several consoles at once,
+each showing its state (`done` / `working`) and its in-flight process detail (`⚙ bash: …`):
+
+![session status panel](docs/images/iterm-session-panel.png)
+
 ## Guardrail
 
 `--repo` is required for every report — transcripts mix personal and
