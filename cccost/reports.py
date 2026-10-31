@@ -156,7 +156,8 @@ def emit(command: str, period_or_session_rows: list[dict], prices, want_json: bo
         }, indent=2, default=str))
         return 0
     label = f"{command.upper()} USAGE"  # emit only sees the five table views
-    unit = command + "s"
+    unit = {"daily": "days", "weekly": "weeks", "monthly": "months",
+            "session": "sessions", "models": "models"}[command]
     if command in ("daily", "weekly", "monthly"):
         body = render_period(period_or_session_rows, command)
     else:

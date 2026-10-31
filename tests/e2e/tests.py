@@ -195,6 +195,36 @@ def test_statusline_survives_garbage():
     assert proc.returncode == 0
 
 
+
+def test_session_status_registry():
+    """The unified hook persists in-flight tools/subagents per session and
+    prints the same detail on --print; Stop clears the registry."""
+    import json as _json
+    import subprocess as _sp
+    hook = ROOT / "hooks" / "session_status.py"
+    sids = "e2e-procs-smoke"
+    import os as _os
+    cache = _tempfile.mkdtemp() if False else None
+    env = {**_os.environ, "CC_COST_CACHE_DIR": tempfile.mkdtemp()}
+    def feed(payload):
+        r = _sp.run([PY, str(hook), "--print"], env=env,
+                    input=_json.dumps(payload), capture_output=True, text=True, timeout=30)
+        assert r.returncode == 0, r.stderr
+        return r.stdout
+    feed({"hook_event_name": "PreToolUse", "tool_name": "Bash",
+          "tool_input": {"command": "npm run build"}, "session_id": sids})
+    feed({"hook_event_name": "SubagentStart", "agent": {"name": "Explore"},
+          "session_id": sids})
+    regfile = Path(env["CC_COST_CACHE_DIR"]) / f"{sids}.procs.json"
+    entries = _json.loads(regfile.read_text())
+    assert entries == ["⚙ bash: npm run build", "🤖 Explore"], entries
+    detail = feed({"hook_event_name": "PostToolUse", "tool_name": "Bash",
+                   "tool_input": {"command": "npm run build"}, "session_id": sids})
+    assert "🤖 Explore" in detail and "bash" not in detail
+    assert _json.loads(regfile.read_text()) == ["🤖 Explore"]
+    feed({"hook_event_name": "Stop", "session_id": sids})
+    assert _json.loads(regfile.read_text()) == []
+
 def main() -> int:
     failures = 0
     for name, fn in sorted(globals().items()):

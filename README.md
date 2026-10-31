@@ -38,9 +38,27 @@ Code's own cost figures are unavailable.
 
 ## Quickstart
 
-See [QUICKSTART.md](QUICKSTART.md) (3 commands) — or run `./install.sh`,
-which runs the tests and does it for you. The full manual is
-[INSTALL.md](INSTALL.md).
+Install — macOS / Linux (Python 3.10+):
+
+```bash
+git clone https://github.com/Facta-Dev/claude-code-cli-cost-tracker
+cd claude-code-cli-cost-tracker
+./install.sh
+```
+
+Windows (PowerShell + Python 3.10+):
+
+```powershell
+git clone https://github.com/Facta-Dev/claude-code-cli-cost-tracker
+cd claude-code-cli-cost-tracker
+powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1
+```
+
+Both run the test suite first, install into `~/.claude`, and print the exact
+`statusLine` + hooks JSON to merge into your settings. The per-session status
+(state dot + in-flight processes + 💰 cost) works natively on iTerm2 (macOS),
+fires `notify-send` on Linux and toasts on Windows — see
+[INSTALL.md](INSTALL.md) §3c. Details: [QUICKSTART.md](QUICKSTART.md).
 
 ## Project
 

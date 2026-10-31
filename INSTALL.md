@@ -125,3 +125,17 @@ rm -rf ~/.claude/cccost ~/.claude/statusline.py ~/.claude/cccost.py \
 ```
 
 …then remove the `statusLine` block from `~/.claude/settings.json`.
+## 3c - cross-platform wiring
+
+One hook serves every event on every OS:
+
+| OS | status UI | hook command |
+|---|---|---|
+| macOS + iTerm2 | native state dot + detail | `python3 $HOME/.claude/hooks/session_status.py` |
+| macOS, no iTerm2 | osascript notification | same |
+| Linux | notify-send on waiting/done | same |
+| Windows | toast (NotifyIcon balloon) | `powershell -NoProfile -ExecutionPolicy Bypass -File %HOME%\.claude\hooks\session_status.py.ps1` -> `...session_status.py` runs the ps1 |
+
+On Windows wire BOTH: the statusLine block and the hooks block from
+install.ps1s output. The registry (`.procs.json`) uses the same cache dir
+as the tracker on every platform.
