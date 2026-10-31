@@ -110,8 +110,14 @@ repo names + counts only, so you can choose without reading content.
   usage credits at these token rates — figures track credits consumed. Under
   Claude subscription plans the Claude rows are "equivalent API cost".
 - **Peak rates in the live meter** — off-peak halving is `--off-peak` (analyzer) only.
-- **Haiku 5.5 tiers beyond 100K** input tokens are under-priced by the sheet (noted).
-- **Machine-scoped**: merge across machines on `session_id`.
+- **Fast mode & Haiku tiers are sheet-driven**: a claude- turn whose usage
+  speed is exactly `"fast"` bills the `-fast` row (without one: base rates +
+  a note); Haiku 5.5 tiers on billed input via its `tiers` key. New tiers or
+  fast variants are sheet edits, not code.
+- **Merging machines**: export with `cccost report` on each machine, then
+  `cccost merge DIR [DIR...] --out-dir DIR` dedupes on `session_id` /
+  `(session_id, turn_index)`, keeping the higher-cost (superset) read.
+  Merged CSVs are view-only data — never re-billed, never relaxing `--repo`.
 - **Turn = one API request** — one prompt usually costs several turns.
 
 ## Credits

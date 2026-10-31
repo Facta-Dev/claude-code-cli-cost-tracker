@@ -96,7 +96,7 @@ def bill_new_lines(state: dict, transcript_path: str, prices) -> None:
             mid = turn["message_id"]
             if mid and mid in billed:
                 continue  # one line per content block repeats identical usage
-            c = prices.cost(turn["model"], turn["tokens"], turn["timestamp"])
+            c = prices.cost(turn["model"], turn["tokens"], turn["timestamp"], fast=turn["fast"])
             if c is None:
                 if turn["model"] and turn["model"] not in unpriced:
                     unpriced.append(turn["model"])

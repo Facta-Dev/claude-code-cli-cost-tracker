@@ -52,7 +52,7 @@ def build(projects_dir: Path, repos: list[str] | None, prices: Prices):
 
         for index, turn in enumerate(turns, start=1):
             tok = turn["tokens"]
-            cost = prices.cost(turn["model"], tok, turn["timestamp"])
+            cost = prices.cost(turn["model"], tok, turn["timestamp"], fast=turn["fast"])
             if cost is None:
                 unpriced += 1
                 cost = 0.0
@@ -82,6 +82,7 @@ def build(projects_dir: Path, repos: list[str] | None, prices: Prices):
                     "context_tokens": billed_in,
                     "cost_usd": round(cost, 6),
                     "priced": int(prices.resolve(turn["model"]) in prices.models),
+                    "fast": int(turn["fast"]),
                 }
             )
 
@@ -119,10 +120,12 @@ def build(projects_dir: Path, repos: list[str] | None, prices: Prices):
 
     return session_rows, turn_rows, skipped
 
-def write_csv(path: Path, rows: list[dict]) -> None:
+def write_csv(path: Path, rows: list[dict],
+              fieldnames: list[str] | None = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="") as fh:
-        writer = csv.DictWriter(fh, fieldnames=list(rows[0].keys()))
+        writer = csv.DictWriter(fh,
+                                fieldnames=fieldnames or list(rows[0].keys()))
         writer.writeheader()
         writer.writerows(rows)
 

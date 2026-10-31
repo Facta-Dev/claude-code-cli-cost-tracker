@@ -63,6 +63,9 @@ def turn_from_obj(obj: object) -> dict | None:
     return {
         "message_id": mid or "",
         "model": message.get("model") or "",
+        # Fast mode is a Claude-only concept; Ollama's numeric speed
+        # (tokens/s) never counts — only the exact string "fast".
+        "fast": usage.get("speed") == "fast" and str(message.get("model") or "").startswith("claude-"),
         "timestamp": obj.get("timestamp"),
         "cwd": obj.get("cwd"),
         "is_sidechain": bool(obj.get("isSidechain")),

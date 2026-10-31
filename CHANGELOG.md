@@ -5,6 +5,14 @@ prices.json — price changes are sheet edits, not code releases.
 
 ## [Unreleased]
 
+- Claude fast mode per turn: usage speed exactly "fast" on a claude- model
+  bills the `-fast` sheet row (opus-5-5/5/4-8); without one, base rates +
+  a report note (fast_fallback). Ollama's numeric speed never counts.
+- Haiku-tiered pricing is sheet-driven: per-model `"tiers"` key applies
+  past a billed-input threshold; unnamed classes stay at the base row.
+- `cccost merge DIR [DIR|CSV...] --out-dir DIR`: cross-machine export
+  dedupe (session_id / session_id+turn_index, higher-cost wins), CSV-only
+  plumbing — no transcripts, no --repo, view-only output.
 - `cccost models`: per-model cost report (which model burns the budget)
 - `--off-peak` now bills per turn by timestamp — weekends and weekdays
   outside 12:00–18:00 UTC; undated turns stay off-peak (understatement).

@@ -65,6 +65,7 @@ class Prices:
         }
         self.off_peak_factor = float(raw.get("off_peak_factor") or 0.5)
         self.off_peak = False  # the CLI flag sets this
+        self.fast_fallback = 0  # fast turns billed at base rates (no -fast row)
         self.unknown: set[str] = set()
 
     def resolve(self, model: str) -> str:
@@ -91,14 +92,29 @@ class Prices:
         return model
 
     def cost(self, model: str, tokens: dict[str, int],
-             timestamp: str | None = None) -> float | None:
+             timestamp: str | None = None, *, fast: bool = False) -> float | None:
         """USD for one turn. None when the model is not on the price sheet."""
         if model == SYNTHETIC:
             return 0.0
-        rates = self.models.get(self.resolve(model))
+        key = self.resolve(model)
+        rates = self.models.get(key + "-fast") if fast else None
+        if rates is None:
+            rates = self.models.get(key)
+            if fast and rates is not None:
+                self.fast_fallback += 1  # understate, never error
         if rates is None:
             self.unknown.add(model)
             return None
+        # Sheet-carried tiers apply to the selected row: past a tier's
+        # threshold on billed input, the classes it names override the row.
+        prompt_size = (
+            tokens["input"] + tokens["cache_read"] + tokens["cache_write_5m"] + tokens["cache_write_1h"]
+        )
+        for tier in sorted(rates.get("tiers") or [],
+                           key=lambda t: t.get("above_billed_input_tokens", 0), reverse=True):
+            if prompt_size > tier["above_billed_input_tokens"]:
+                rates = {f: tier.get(f, rates[f]) for f in TOKEN_FIELDS}
+                break
         # Off-peak is an Ollama Cloud concept (rows tagged off_peak): a
         # first-party Claude row must not inherit it, and the half rate
         # applies PER TURN by timestamp — weekends and weekdays outside

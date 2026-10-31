@@ -14,7 +14,9 @@ project cheap to maintain.
 3. **The report surface is a contract.** The text report and CSVs are
    byte-compat; if output formatting changes, the tests change with it.
 4. `--repo` is required for every report — the guardrail is a feature, not
-   friction.
+   friction. The single carve-out is `cccost merge`, which is CSV-only
+   plumbing over already-billed exports (no transcripts scanned, no pricing,
+   view-only output).
 5. **Stdlib only.** No dependencies in the runtime or tests.
 6. **Unpriced ≠ dropped.** A model missing from the sheet bills $0 and is
    named — both in reports and via `⚠` in the status line.

@@ -66,10 +66,14 @@ def session_report_rows(session_rows: list[dict]) -> list[dict]:
 
 
 def unpriced_note(prices) -> str:
-    if not prices.unknown:
-        return ""
-    return "!  models missing from the price sheet (counted, priced at $0): " \
-        + ", ".join(sorted(prices.unknown)) + "\n"
+    lines = []
+    if prices.unknown:
+        lines.append("!  models missing from the price sheet (counted, priced at $0): "
+                     + ", ".join(sorted(prices.unknown)))
+    if getattr(prices, "fast_fallback", 0):
+        lines.append(f"!  fast-mode turns billed at base rates, missing -fast row: "
+                     f"{prices.fast_fallback}")
+    return "\n".join(lines) + "\n" if lines else ""
 
 
 def render_period(rows: list[dict], command: str) -> str:

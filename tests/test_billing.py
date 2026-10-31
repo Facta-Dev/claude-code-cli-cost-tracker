@@ -129,18 +129,18 @@ def test_analyzer_billing():
         sessions = read_csv(Path(out) / "sessions.csv")
         turns = read_csv(Path(out) / "turns.csv")
 
-        assert len(turns) == 9, "dupes and corrupt-usage lines must not bill"
+        assert len(turns) == 11, "dupes and corrupt-usage lines must not bill"
         a = session_row(sessions, "sessA")
         b = session_row(sessions, "sessB")
 
-        # sessA: $1.40 (glm-5.3-flash w/ both TTLs) + $1.58 (glm-5.2) + $0 + $0
-        assert float(a["cost_usd"]) == 2.98 and int(a["turns"]) == 4
-        # sessB: 0.59 (off-h) + 3.00 (claude) + 2.00 (off-h) + 2.00 (peak-h) + 0.75 (sub)
-        assert float(b["cost_usd"]) == 8.34 and int(b["turns"]) == 5
+        # sessA: 1.40 + 1.58 + 0 + 0 + 3.72 (opus fast: 1.6+2.0+0.12)
+        assert float(a["cost_usd"]) == 6.70 and int(a["turns"]) == 5
+        # sessB: 0.59 + 3.00 (claude) + 2.00 + 2.00 (14:00 peak) + 0.75 + 0.35 (haiku tier)
+        assert float(b["cost_usd"]) == 8.69 and int(b["turns"]) == 6
         assert int(b["sidechain_turns"]) == 1, "subagent must fold into parent"
         # cache hit rates on hand-computed splits
-        assert float(b["cache_hit_rate"]) == 0.2222  # 8M read of 36M billed
-        assert float(a["cache_hit_rate"]) == 0.9036  # 30M read of 33.2M billed
+        assert float(b["cache_hit_rate"]) == 0.2213  # 8M read of 36.15M billed
+        assert float(a["cache_hit_rate"]) == 0.8991  # 30.3M read of 33.7M billed
 
 
 def test_off_peak_discounts_only_ollama():
@@ -151,9 +151,9 @@ def test_off_peak_discounts_only_ollama():
         sessions = read_csv(Path(out) / "sessions.csv")
         a = session_row(sessions, "sessA")
         b = session_row(sessions, "sessB")
-        assert float(a["cost_usd"]) == 1.49  # 2.98 / 2 — all-Ollama session
-        # 0.59->0.295 | claude 3.00 stays | 2.00->1.00 | 14:00 stays 2.00 | 0.75->0.375
-        assert float(b["cost_usd"]) == 6.67
+        assert float(a["cost_usd"]) == 5.21  # 1.49 halved Ollama turns + 3.72 (claude fast, full)
+        # 0.59->0.295 | claude 3.00 | 2.00->1.00 | 14:00 stays 2.00 | 0.75->0.375 | haiku 0.35 (claude row)
+        assert float(b["cost_usd"]) == 7.02
 
 
 def test_unpriced_models_named():
@@ -179,17 +179,17 @@ def test_cccost_period_reports():
     for command in ("daily", "weekly", "monthly"):
         proc = cccost(command, "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
         assert proc.returncode == 0, proc.stderr
-        assert "$11.32" in proc.stdout, f"{command} must bill 2.98 + 8.34"
+        assert "$15.39" in proc.stdout, f"{command} must bill 6.70 + 8.69"
 
 
 def test_cccost_session_json_and_guardrail():
     proc = cccost("session", "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
     assert proc.returncode == 0 and "sessA" in proc.stdout and "cost-lab" in proc.stdout
-    assert "$2.98" in proc.stdout and "$8.34" in proc.stdout
+    assert "$6.70" in proc.stdout and "$8.69" in proc.stdout
     with tempfile.TemporaryDirectory() as td:
         proc = cccost("daily", "--json", "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
         data = json.loads(proc.stdout)
-        assert data["rows"][0]["key"] == "2026-10-30" and data["total_cost_usd"] == 11.32
+        assert data["rows"][0]["key"] == "2026-10-30" and data["total_cost_usd"] == 15.39
     proc = cccost("daily", "--projects-dir", str(PROJECTS))
     assert proc.returncode != 0, "period reports must keep the --repo guardrail"
     proc = cccost("--list-repos", "--projects-dir", str(PROJECTS))
@@ -210,10 +210,10 @@ def test_cccost_report_and_last():
     """The report subcommand (shared flow) and the --last window filter."""
     with tempfile.TemporaryDirectory() as td:
         proc = cccost("report", "--out-dir", td, "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
-        assert proc.returncode == 0 and "BASELINE" in proc.stdout and "$11.32" in proc.stdout
+        assert proc.returncode == 0 and "BASELINE" in proc.stdout and "$15.39" in proc.stdout
         assert Path(td, "sessions.csv").exists() and Path(td, "turns.csv").exists()
     proc = cccost("daily", "--last", "365", "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
-    assert "$11.32" in proc.stdout, "--last 365 keeps the whole fixture"
+    assert "$15.39" in proc.stdout, "--last 365 keeps the whole fixture"
 
 
 def statusline(payload: dict, cache_dir: str) -> str:
@@ -241,7 +241,7 @@ def test_statusline_self_bills_incrementally():
     }
     with tempfile.TemporaryDirectory() as cd:
         out1 = statusline(payload, cd)
-        assert "$2.98" in out1 and "cost-lab" in out1 and "10m 32s" in out1
+        assert "$6.70" in out1 and "cost-lab" in out1 and "10m 32s" in out1
         assert "▲ +118 -40" in out1
 
         # a turn arrives mid-session (three duplicate content-block lines
@@ -254,7 +254,7 @@ def test_statusline_self_bills_incrementally():
         with open(fixture, "a") as fh:
             fh.write(json.dumps(turn) + "\n" + json.dumps(turn) + "\n")
         out2 = statusline(payload, cd)
-        assert "$4.98" in out2, f"incremental rerun must show +$2.00: {out2}"
+        assert "$8.70" in out2, f"incremental rerun must show +$2.00: {out2}"
 
         # a subagent transcript appears for the parent session
         sub = SLUG / "sessA" / "subagents"
@@ -265,7 +265,7 @@ def test_statusline_self_bills_incrementally():
                         "usage": {"input_tokens": 4_000_000, "output_tokens": 1_000_000}},
         }) + "\n")
         out3 = statusline(payload, cd)
-        assert "$6.08" in out3, f"subagent spend must fold in (+$1.10): {out3}"
+        assert "$9.80" in out3, f"subagent spend must fold in (+$1.10): {out3}"
 
 
 def test_statusline_payload_cost_wins_when_native():
@@ -305,6 +305,106 @@ def test_statusline_survives_garbage():
     assert proc.returncode == 0 and "⚠" in proc.stdout
     proc = run(ROOT / "statusline.py", payload="[]")  # a JSONL-array payload shape
     assert proc.returncode == 0
+
+
+def test_speed_number_is_not_fast():
+    """Ollama's numeric speed (tokens/s) — and any non-"fast" string — never counts."""
+    from cccost.transcript import turn_from_obj
+    prices = Prices(ROOT / "prices.json")
+    usage_line = {"type": "assistant",
+                  "message": {"id": "m1", "model": "glm-5.3-flash",
+                              "usage": {"input_tokens": 1_000_000, "speed": 12.3}}}
+    assert turn_from_obj(usage_line)["fast"] is False
+    usage_line["message"]["model"] = "claude-sonnet-5"
+    assert turn_from_obj(usage_line)["fast"] is False
+    assert prices.cost("claude-sonnet-5", usage_tokens({"input_tokens": 1_000_000})) == 2.00
+
+
+def test_fast_mode_pricing():
+    """speed=='fast' on a claude- model bills the -fast sheet row (2x classes)."""
+    prices = Prices(ROOT / "prices.json")
+    tok = usage_tokens({"input_tokens": 200_000, "output_tokens": 50_000,
+                        "cache_read_input_tokens": 300_000})
+    assert prices.cost("claude-opus-5-5", tok) == 1.86
+    assert prices.cost("claude-opus-5-5", tok, fast=True) == 3.72
+    assert prices.cost("claude-opus-5-5[1m]", tok, fast=True) == 3.72
+    assert prices.fast_fallback == 0
+
+
+def test_fast_without_sheet_row_falls_back():
+    """No -fast row: base rates + fallback counter; unknown models stay unknown."""
+    prices = Prices(ROOT / "prices.json")
+    tok = usage_tokens({"input_tokens": 1_000_000, "output_tokens": 100_000})
+    assert prices.cost("claude-sonnet-5-5", tok) == 3.00
+    assert prices.cost("claude-sonnet-5-5", tok, fast=True) == 3.00
+    assert prices.fast_fallback == 1
+    assert prices.cost("mystery-model", tok, fast=True) is None
+    assert prices.fast_fallback == 1  # an unknown model does not count as fallback
+
+
+def test_haiku_tier_boundary():
+    """Sheet-carried tiers apply strictly above the threshold; only named classes."""
+    prices = Prices(ROOT / "prices.json")
+    base = usage_tokens({"input_tokens": 100_000, "output_tokens": 10_000})
+    assert prices.cost("claude-haiku-5-5", base) == 0.015
+    over = usage_tokens({"input_tokens": 150_000, "output_tokens": 10_000})
+    assert prices.cost("claude-haiku-5-5", over) == 0.1  # tier: (150k*0.5 + 10k*2.5)/1e6
+    # tier names input/output only — cache classes bill at the base row
+    cached = usage_tokens({"input_tokens": 50_000, "cache_read_input_tokens": 60_000})
+    assert prices.cost("claude-haiku-5-5", cached) == 0.0256
+    # rows without tiers are untouched
+    assert prices.cost("claude-sonnet-5", usage_tokens({"input_tokens": 500_000})) == 1.00
+
+
+def test_merge_dedupes_on_ids():
+    """Higher cost wins on key conflicts; rows union; output is sorted."""
+    with tempfile.TemporaryDirectory() as d1_path, \
+         tempfile.TemporaryDirectory() as d2_path, \
+         tempfile.TemporaryDirectory() as out:
+        d1, d2 = Path(d1_path), Path(d2_path)
+        assert cccost("report", "--out-dir", str(d1), "--projects-dir", str(PROJECTS),
+                      "--repo", REPO_NAME).returncode == 0
+        (d2 / "sessions.csv").write_text(
+            "session_id,repo,cost_usd\nsessA,cost-lab,3.00\nsessZ,other,1.23\n")
+        (d2 / "turns.csv").write_text(
+            "session_id,turn_index,cost_usd\nsessA,2,9.99\nsessB,7,0.50\nsessZ,1,1.23\n")
+        proc = cccost("merge", str(d1), str(d2), "--out-dir", out)
+        assert proc.returncode == 0, proc.stderr
+        sessions = read_csv(Path(out) / "sessions.csv")
+        assert [r["session_id"] for r in sessions] == ["sessA", "sessB", "sessZ"]
+        assert float(next(r for r in sessions if r["session_id"] == "sessA")["cost_usd"]) == 6.70
+        turns = read_csv(Path(out) / "turns.csv")
+        assert len(turns) == 13, "conflict keeps higher cost; new keys union in"
+        keys = {(r["session_id"], r["turn_index"]) for r in turns}
+        assert ("sessA", "2") in keys and ("sessB", "7") in keys and ("sessZ", "1") in keys
+        row = next(r for r in turns if r["session_id"] == "sessA" and r["turn_index"] == "2")
+        assert float(row["cost_usd"]) == 9.99  # superset read wins over 1.58
+
+
+def test_merge_needs_no_repo_and_never_scans_transcripts():
+    """merge is CSV plumbing: no --repo, no transcript path, ever."""
+    with tempfile.TemporaryDirectory() as d1_path, tempfile.TemporaryDirectory() as out:
+        assert cccost("report", "--out-dir", d1_path, "--projects-dir", str(PROJECTS),
+                      "--repo", REPO_NAME).returncode == 0
+        assert cccost("merge", d1_path, "--out-dir", out).returncode == 0
+        proc = cccost("merge", d1_path, "--projects-dir", "/nonexistent-xyz", "--out-dir", out)
+        assert proc.returncode == 0, "merge must not touch transcript paths"
+
+
+def test_merge_rejects_bad_inputs():
+    """Loud refusals: empty export, self-merge, unknown file; keyless drop warns."""
+    with tempfile.TemporaryDirectory() as out, tempfile.TemporaryDirectory() as empty:
+        assert cccost("merge", empty, "--out-dir", out).returncode != 0
+        assert cccost("merge", out, "--out-dir", out).returncode != 0
+        stray = Path(out) / "foo.csv"
+        stray.write_text("a\nb\n")
+        assert cccost("merge", str(stray), "--out-dir", out).returncode != 0
+        with tempfile.TemporaryDirectory() as d1_path, tempfile.TemporaryDirectory() as d2_path:
+            assert cccost("report", "--out-dir", d1_path, "--projects-dir", str(PROJECTS),
+                          "--repo", REPO_NAME).returncode == 0
+            (Path(d2_path) / "turns.csv").write_text("session_id,cost_usd\nsessA,1.00\n")
+            proc = cccost("merge", d1_path, str(Path(d2_path) / "turns.csv"), "--out-dir", out)
+            assert proc.returncode == 0 and "session_id" in proc.stderr
 
 
 def main() -> int:

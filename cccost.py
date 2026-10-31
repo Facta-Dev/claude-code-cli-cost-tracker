@@ -4,12 +4,15 @@
     cccost daily --repo my-project
     cccost weekly | monthly | session --repo my-project
     cccost report --repo my-project    # full baseline report + CSVs
+    cccost merge DIR [DIR|CSV...] --out-dir DIR   # dedupe multi-machine exports
     cccost --list-repos                # names + session counts only
 
-Every subcommand bills turns per its own model against prices.json
-(Ollama Cloud + first-party Claude rates), and every subcommand requires
---repo (repeatable) — the guardrail: transcripts mix personal and
-work-adjacent sessions, so inclusion is always explicit.
+Every billing subcommand bills turns per its own model against prices.json
+(Ollama Cloud + first-party Claude rates), and every billing subcommand
+requires --repo (repeatable) — the guardrail: transcripts mix personal and
+work-adjacent sessions, so inclusion is always explicit. `merge` is the one
+exception: it is CSV-only plumbing (no transcripts scanned, no pricing) over
+already-billed exports; its output is view-only data.
 
     --off-peak   half rate on off_peak rows, per turn by timestamp
                  (weekends + weekdays outside 12:00-18:00 UTC)
@@ -27,10 +30,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from cccost.analysis import build, full_report, list_repos, load_prices
+from cccost.merge import merge
 from cccost.reports import emit, model_rows, period_rows, session_report_rows
 
 PERIODS = ("daily", "weekly", "monthly")
-COMMANDS = PERIODS + ("session", "models", "report")
+COMMANDS = PERIODS + ("session", "models", "merge", "report")
 REPO_GUARDRAIL = (
     "--repo is required. This is a guardrail, not an oversight: transcripts "
     "include work-adjacent sessions, so shipping the wrong sessions into a "
@@ -59,21 +63,24 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--list-repos", action="store_true")
     parser.add_argument("--out-dir", type=Path)
     parser.add_argument("--curve-bins", type=int)
+    parser.add_argument("inputs", nargs="*", type=Path,
+                        help="merge only: export directories or single CSVs")
     args, unknown = parser.parse_known_args(argv)
     if unknown:
         sys.exit(f"unknown arguments: {unknown}")
     if args.list_repos:
         list_repos(args.projects_dir)
         return 0
+    if command != "merge" and args.inputs:
+        sys.exit(f"unexpected positional arguments {args.inputs} — only merge takes paths")
+    if command == "merge":
+        if not args.inputs:
+            sys.exit("usage: cccost merge DIR [DIR|CSV...] --out-dir DIR")
+        return merge(args.inputs, args.out_dir or Path("out"))
     if command not in COMMANDS:
         sys.exit(f"usage: cccost {'|'.join(COMMANDS)} [--repo NAME]... [flags]")
-    if not args.projects_dir.is_dir():
-        sys.exit(f"no transcripts at {args.projects_dir}")
-    if not args.repo:
-        sys.exit(REPO_GUARDRAIL)
-
-    proj = args.projects_dir or DEFAULT_PROJECTS_DIR
-    if proj and not proj.is_dir():
+    proj = args.projects_dir
+    if not proj.is_dir():
         sys.exit(f"no transcripts at {proj}")
     if not args.repo:
         sys.exit(REPO_GUARDRAIL)

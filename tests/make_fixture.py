@@ -57,6 +57,11 @@ def usage(full: dict) -> dict:
     return full | {"speed": 12.3, "service_tier": "cloud", "server_tool_use": {}}
 
 
+def fast_usage(full: dict) -> dict:
+    """A Claude fast-mode usage: speed is exactly the string 'fast'."""
+    return usage(full) | {"speed": "fast"}
+
+
 def main(projects_dir: Path) -> None:
     (projects_dir / "-Users-demo-repos-cost-lab").mkdir(parents=True, exist_ok=True)
     slug = projects_dir / "-Users-demo-repos-cost-lab"
@@ -86,6 +91,9 @@ def main(projects_dir: Path) -> None:
         line({"type": "assistant", "message": {"id": "msg_bad", "model": "glm-5.3-flash", "usage": "corrupt"}}),
         line({"type": "user", "message": {"role": "user", "content": "next"}}),
         assistant("msg_004", "<synthetic>", {"input_tokens": 0, "output_tokens": 0}, "09:00:30Z"),
+        assistant("msg_006", "claude-opus-5-5",
+                  fast_usage({"input_tokens": 200_000, "output_tokens": 50_000,
+                              "cache_read_input_tokens": 300_000}), "09:00:40Z"),
     ]
     (slug / "sessA.jsonl").write_text("\n".join(a_lines) + "\n")
 
@@ -99,6 +107,8 @@ def main(projects_dir: Path) -> None:
         line({"type": "user", "message": {"role": "user", "content": "more"}}),
         assistant("msg_B3", "glm-5.3-flash", usage({"input_tokens": 10_000_000, "output_tokens": 1_000_000}), "09:30:00Z"),
         assistant("msg_B4", "glm-5.3-flash", usage({"input_tokens": 10_000_000, "output_tokens": 1_000_000}), "14:00:00Z"),
+        assistant("msg_B5", "claude-haiku-5-5",
+                  usage({"input_tokens": 150_000, "output_tokens": 110_000}), "09:40:00Z"),
     ]
     (slug / "sessB.jsonl").write_text("\n".join(b_lines) + "\n")
 
