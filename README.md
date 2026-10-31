@@ -14,10 +14,14 @@ project — same data model, retargeted billing.
 | --- | --- |
 | `statusline.py` | Live cost meter entry point for Claude Code's status line |
 | `analyze-history.py` | Analyzer entry point: CLI, guardrail, CSVs |
+| `cccost.py` | One CLI for all reports: `daily` / `weekly` / `monthly` / `session` / `report` (+ `--json`, `--last N`) |
 | `cccost/billing.py` | The one pricing seam: usage token classes, model resolution (`:cloud`, `[1m]`, aliases), per-turn cost, off-peak |
 | `cccost/transcript.py` | Transcript shape knowledge: per-line extraction, `message.id` dedupe, session discovery, repo naming |
 | `cccost/session_state.py` | The status line's incremental per-session billing store (byte offsets per transcript file) |
 | `cccost/report.py` | The analyzer's text report (a byte-compat surface) |
+| `cccost/analysis.py` | Discovery-to-rows pipeline shared by every report; CSV writer |
+| `cccost/reports.py` | The aggregate tables: daily / weekly / monthly / session |
+| `commands/cccost.md` | `/cccost` slash command for Claude Code (reports from inside a session) |
 | `prices.json` | Date-stamped price sheet: every priced Ollama Cloud model + first-party Claude models, USD per 1M tokens |
 | `tests/` | A synthetic fixture reproducing every awkward transcript shape, plus the billing checks |
 
@@ -26,8 +30,9 @@ Python 3.10+, standard library only, nothing leaves your machine.
 ## Install the status line
 
 ```bash
-mkdir -p ~/.claude
-cp -r cccost statusline.py prices.json ~/.claude/
+mkdir -p ~/.claude ~/.claude/commands
+cp -r cccost statusline.py cccost.py prices.json ~/.claude/
+cp commands/cccost.md ~/.claude/commands/
 ```
 
 Add to `~/.claude/settings.json` (absolute path — `~` is not expanded there):
@@ -106,6 +111,31 @@ The sheet carries:
 - **Per-turn model.** Sessions switch models mid-run; pricing follows the
   model that actually served each turn.
 - **Unpriced models are named, never dropped.**
+
+## Reports
+
+`cccost` is the reports CLI — same billing core as the status line and the
+analyzer, viewed daily / weekly / monthly / per session, all behind the
+`--repo` guardrail (inclusion is always explicit):
+
+```bash
+cccost daily --repo my-project            # tokens + cost per day
+cccost weekly --repo my-project           # ISO weeks
+cccost monthly --repo my-project          # calendar months
+cccost session --repo my-project          # one row per session
+cccost report --repo my-project           # the full baseline report + CSVs
+cccost daily --repo my-project --last 30  # window, not all history
+cccost daily --repo my-project --json     # machine-readable
+```
+
+Inside Claude Code, the same reports run as a slash command:
+
+```
+/cccost daily --repo my-project
+```
+
+(`/cccost` runs the installed CLI — install the command file with the rest:
+`cp commands/cccost.md ~/.claude/commands/`, then type `/cccost ...`.)
 
 ## Caveats
 

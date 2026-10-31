@@ -19,6 +19,7 @@ Sessions 'sessA'/'sessB' work in /Users/demo/repos/cost-lab (repo cost-lab).
 """
 
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -26,6 +27,10 @@ ROOT = Path(__file__).resolve().parent
 DEFAULT_PROJECTS = ROOT / "fixtures" / "projects"
 CWD = "/Users/demo/repos/cost-lab"
 DAY = "2026-10-30T"
+
+
+def main(projects_dir: Path) -> None:
+    shutil.rmtree(projects_dir, ignore_errors=True)  # regenerate from nothing
 
 
 def line(obj: dict) -> str:

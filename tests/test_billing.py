@@ -165,6 +165,35 @@ def test_unpriced_models_named():
 # ---- status line ---------------------------------------------------------
 
 
+# ---- cccost report CLI ---------------------------------------------------
+
+
+def cccost(*args: str) -> subprocess.CompletedProcess:
+    return run(ROOT / "cccost.py", *args)
+
+
+def test_cccost_period_reports():
+    """daily/weekly/monthly aggregate the same dollars the analyzer bills."""
+    for command in ("daily", "weekly", "monthly"):
+        proc = cccost(command, "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
+        assert proc.returncode == 0, proc.stderr
+        assert "$7.32" in proc.stdout, f"{command} must bill 2.98 + 4.34"
+
+
+def test_cccost_session_json_and_guardrail():
+    proc = cccost("session", "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
+    assert proc.returncode == 0 and "sessA" in proc.stdout and "cost-lab" in proc.stdout
+    assert "$2.98" in proc.stdout and "$4.34" in proc.stdout
+    with tempfile.TemporaryDirectory() as td:
+        proc = cccost("daily", "--json", "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
+        data = json.loads(proc.stdout)
+        assert data["rows"][0]["key"] == "2026-10-30" and data["total_cost_usd"] == 7.32
+    proc = cccost("daily", "--projects-dir", str(PROJECTS))
+    assert proc.returncode != 0, "period reports must keep the --repo guardrail"
+    proc = cccost("--list-repos", "--projects-dir", str(PROJECTS))
+    assert proc.returncode == 0 and REPO_NAME in proc.stdout and "$" not in proc.stdout
+
+
 def statusline(payload: dict, cache_dir: str) -> str:
     proc = run(
         ROOT / "statusline.py",
@@ -233,13 +262,13 @@ def test_statusline_payload_cost_wins_when_native():
 
 def test_statusline_flags_unpriced_models():
     """A turn from a model missing from the sheet shows as $0.00 ⚠."""
-    fixture = SLUG / "sessC.jsonl"
-    fixture.write_text(json.dumps({
-        "type": "assistant",
-        "message": {"id": "msg_C1", "model": "mystery-model",
-                    "usage": {"input_tokens": 50_000, "output_tokens": 500}},
-    }) + "\n")
     with tempfile.TemporaryDirectory() as cd:
+        fixture = Path(cd) / "sessC.jsonl"
+        fixture.write_text(json.dumps({
+            "type": "assistant",
+            "message": {"id": "msg_C1", "model": "mystery-model",
+                        "usage": {"input_tokens": 50_000, "output_tokens": 500}},
+        }) + "\n")
         out = statusline(
             {"session_id": "sessC", "transcript_path": str(fixture),
              "workspace": {"current_dir": "/Users/demo/repos/cost-lab"}},
