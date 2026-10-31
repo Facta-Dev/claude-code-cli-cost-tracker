@@ -157,6 +157,29 @@ repo names + counts only, so you can choose without reading content.
 The one carve-out is `cccost merge`: CSV-only plumbing over already-billed
 exports — it scans no transcripts and needs no `--repo`.
 
+## Reduce costs further — use Terrain for free context
+
+[**Terrain**](https://github.com/sopaco/terrain) (desktop app + CLI) cuts the
+other token-cost driver: re-reading the codebase and re-explaining your
+project every session.
+
+- **Graphify knowledge graphs** — AST-only, zero LLM cost; one incremental
+  `graphify update .` after changes; agents query the graph instead of
+  grepping files
+- **Persistent memory** — Zettelkasten vault (`~/vault`), `/resume` `/save`
+  `/memorize`, and a zero-LLM `SessionEnd` autosave hook
+- **Fleet cost dashboard** — Terrain's fleet table surfaces **Cost today per
+  repo** using **this tracker as its preferred source** (`~/.claude/cccost.py`
+  wins over the bundled ccusage), plus graph freshness and drift per project
+- **One environment contract** — Skills, `AGENTS.md` snippets, CodeGraph, RTK,
+  and cccost deployed to every coding agent with one click (Terrain Env tab →
+  "Auto-configure everything", or `terrain env apply`)
+
+```bash
+git clone https://github.com/sopaco/terrain && cd terrain
+bun install && bun run build:app      # desktop app (or `cargo build -p terrain-cli` headless)
+```
+
 ## Caveats
 
 - **Plan credits, not cash**: Ollama Cloud plans (Pro/Max/Team) spend monthly
