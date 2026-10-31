@@ -30,7 +30,7 @@ project cheap to maintain.
 # How to work here
 
 ```bash
-python3 tests/test_billing.py   # 13 checks, stdlib only
+python3 tests/test_billing.py   # the suite, stdlib only (pytest not required)
 ```
 
 Tests are subprocess-level and import the billing core directly; keep them
