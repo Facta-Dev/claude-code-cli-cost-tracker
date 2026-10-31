@@ -6,15 +6,18 @@ Thin alias for `cccost report` — same flags (--repo, --projects-dir,
 Kept for muscle memory and existing scripts; new code should call cccost.
 """
 
-from __future__ import annotations
-
 import sys
 
-from cccost import main as cccost_main
+from cccost.cli import main
 
-if __name__ == "__main__":
+
+def _argv() -> list[str]:
     argv = sys.argv[1:]
     if argv and argv[0] in ("-h", "--help"):
         print(__doc__)
         raise SystemExit(0)
-    raise SystemExit(cccost_main(["report", *argv]))
+    return ["report", *argv]
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(_argv()))
