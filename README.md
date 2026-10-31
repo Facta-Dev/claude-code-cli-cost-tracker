@@ -133,7 +133,13 @@ it standalone:
 echo '{"workspace":{"current_dir":"/tmp/demo"},"cost":{"total_cost_usd":2.47},"model":{"display_name":"GLM 5.3 Flash"}}' | python3 statusline.py
 ```
 
-The proof — live status line on a real session (cost turns yellow at $1, red at $5):
+The proof — the complete console: three Claude Code sessions running in parallel,
+each with its own live status line (repo, time, lines changed, context, cost, model),
+plus iTerm2's Session Status panel on the right tracking every session's state.
+
+![complete iterm console](docs/images/iterm-full.png)
+
+The live status line, up close (cost turns yellow at $1, red at $5):
 
 ![live status line](docs/images/iterm-statusline.png)
 
