@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "One status-line render \u2014 incremental billing lifecycle",
+    "viewBox": [
+      1080,
+      680
+    ],
+    "column_fit": "spread",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "output": "render.sequence.html"
+  },
+  "participants": [
+    {
+      "id": "cc",
+      "type": "external",
+      "label": "Claude Code",
+      "sublabel": "invokes every ~5s"
+    },
+    {
+      "id": "sl",
+      "type": "frontend",
+      "label": "statusline.py",
+      "sublabel": "render()"
+    },
+    {
+      "id": "st",
+      "type": "database",
+      "label": "session state",
+      "sublabel": "byte offsets + billed ids"
+    },
+    {
+      "id": "tr",
+      "type": "database",
+      "label": "transcript.jsonl",
+      "sublabel": "+ subagents/"
+    },
+    {
+      "id": "pr",
+      "type": "backend",
+      "label": "cccost.billing",
+      "sublabel": "resolve \u00b7 cost"
+    },
+    {
+      "id": "js",
+      "type": "database",
+      "label": "prices.json",
+      "sublabel": "as_of 2026-10-30"
+    }
+  ],
+  "messages": [
+    {
+      "id": "payload",
+      "from": "cc",
+      "to": "sl",
+      "y": 165,
+      "label": "session JSON on stdin",
+      "variant": "default"
+    },
+    {
+      "id": "native-cost",
+      "from": "sl",
+      "to": "cc",
+      "y": 200,
+      "label": "payload cost > 0 ? show untouched",
+      "variant": "return"
+    },
+    {
+      "id": "load-state",
+      "from": "sl",
+      "to": "st",
+      "y": 240,
+      "label": "load_state(session_id)",
+      "variant": "default"
+    },
+    {
+      "id": "load-prices",
+      "from": "sl",
+      "to": "pr",
+      "y": 270,
+      "label": "Prices(sheet)",
+      "variant": "default"
+    },
+    {
+      "id": "read-new",
+      "from": "st",
+      "to": "tr",
+      "y": 300,
+      "label": "seek(offset) read new bytes",
+      "variant": "emphasis"
+    },
+    {
+      "id": "extract",
+      "from": "tr",
+      "to": "pr",
+      "y": 340,
+      "label": "turn_from_obj per complete line",
+      "variant": "emphasis"
+    },
+    {
+      "id": "dedupe",
+      "from": "tr",
+      "to": "pr",
+      "y": 380,
+      "label": "skip message.id already billed",
+      "variant": "dashed"
+    },
+    {
+      "id": "bill",
+      "from": "pr",
+      "to": "js",
+      "y": 420,
+      "label": "rates per turn model",
+      "variant": "default"
+    },
+    {
+      "id": "cost",
+      "from": "pr",
+      "to": "sl",
+      "y": 460,
+      "label": "cost(USD) + unpriced names",
+      "variant": "return"
+    },
+    {
+      "id": "save",
+      "from": "sl",
+      "to": "st",
+      "y": 500,
+      "label": "save_state (atomic, pid tmp)",
+      "variant": "security"
+    },
+    {
+      "id": "line",
+      "from": "sl",
+      "to": "cc",
+      "y": 540,
+      "label": "rendered line  \ud83d\udcc1 \u23f1 \u25b2 \u25d4 $ \u25c6",
+      "variant": "emphasis"
+    },
+    {
+      "id": "fallback",
+      "from": "cc",
+      "to": "sl",
+      "y": 575,
+      "label": "any error \u2192 never dark (\u26a0 line)",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Cost is correct",
+      "items": [
+        "payload cost wins only when Claude Code prices it",
+        "own figure = transcript, per-turn rates"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Never dark",
+      "items": [
+        "render() guarded; minimal_line() fallback; literal line last"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Bounded per render",
+      "items": [
+        "O(new bytes) reads; state capped; 67\u00b5s sheet load"
+      ]
+    }
+  ]
+}

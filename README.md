@@ -36,6 +36,7 @@ by [@ryoppippi](https://github.com/ryoppippi), MIT) — see
 | `cccost/merge.py` | Cross-machine export merge: sessions/turns dedupe on ids, higher-cost wins, CSV-only plumbing |
 | `cccost/session_state.py` | The status line's incremental per-session billing store (byte offsets per transcript file) |
 | `cccost/report.py` | The analyzer's text report (byte-compat surface) |
+| `docs/architecture/` | Interactive diagrams of the implementation (module map, billing dataflow, render lifecycle) — open the `.html`, specs are the source of truth |
 | `commands/cccost.md` | `/cccost` slash command for Claude Code (reports from inside a session) |
 | `prices.json` | Date-stamped sheet: every priced Ollama Cloud model + all current first-party Claude models, USD per 1M tokens |
 | `tests/` | Four suites (unit / contracts / integrations / e2e), plain-python runners + aggregator; fixture reproducing every awkward transcript shape |

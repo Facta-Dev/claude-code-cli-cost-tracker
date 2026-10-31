@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "cccost billing dataflow \u2014 transcript to dollars",
+    "output": "billing.dataflow.html",
+    "viewBox": [
+      1100,
+      780
+    ],
+    "animation": "trace",
+    "quality_profile": "standard"
+  },
+  "stages": [
+    {
+      "label": "Sources"
+    },
+    {
+      "label": "Shape"
+    },
+    {
+      "label": "Pricing seam"
+    },
+    {
+      "label": "Surfaces"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "jsonl",
+      "type": "database",
+      "label": "transcripts",
+      "sublabel": "one line per block",
+      "stage": 0,
+      "row": 0
+    },
+    {
+      "id": "subs",
+      "type": "database",
+      "label": "subagents",
+      "sublabel": "bills to parent",
+      "stage": 0,
+      "row": 2
+    },
+    {
+      "id": "sheet",
+      "type": "database",
+      "label": "prices.json",
+      "sublabel": "rates + as_of",
+      "stage": 0,
+      "row": 4
+    },
+    {
+      "id": "turn",
+      "type": "backend",
+      "label": "turn_from_obj",
+      "sublabel": "usage + fast",
+      "stage": 1,
+      "row": 0
+    },
+    {
+      "id": "dedupe",
+      "type": "backend",
+      "label": "message.id dedupe",
+      "sublabel": "vs per-block repeats",
+      "stage": 1,
+      "row": 2
+    },
+    {
+      "id": "cost",
+      "type": "backend",
+      "label": "cost()",
+      "sublabel": "resolve + tiers + off-peak",
+      "stage": 2,
+      "row": 2,
+      "tag": "the seam"
+    },
+    {
+      "id": "live",
+      "type": "frontend",
+      "label": "status line",
+      "sublabel": "$ live, peak",
+      "stage": 3,
+      "row": 0
+    },
+    {
+      "id": "tables",
+      "type": "frontend",
+      "label": "cccost reports",
+      "sublabel": "rows + --json",
+      "stage": 3,
+      "row": 2
+    },
+    {
+      "id": "csvs",
+      "type": "database",
+      "label": "report CSVs",
+      "sublabel": "merge-ready",
+      "stage": 3,
+      "row": 4
+    }
+  ],
+  "flows": [
+    {
+      "from": "jsonl",
+      "to": "turn",
+      "label": "assistant lines",
+      "variant": "emphasis"
+    },
+    {
+      "from": "subs",
+      "to": "dedupe",
+      "label": "fold to parent"
+    },
+    {
+      "from": "turn",
+      "to": "dedupe",
+      "label": "per request",
+      "labelAt": [
+        315,
+        201
+      ]
+    },
+    {
+      "from": "dedupe",
+      "to": "cost",
+      "label": "one row per API request",
+      "labelAt": [
+        450,
+        425
+      ]
+    },
+    {
+      "from": "sheet",
+      "to": "cost",
+      "label": "rates never in code"
+    },
+    {
+      "from": "cost",
+      "to": "live",
+      "label": "line"
+    },
+    {
+      "from": "cost",
+      "to": "tables",
+      "label": "rows"
+    },
+    {
+      "from": "tables",
+      "to": "csvs",
+      "label": "export",
+      "labelAt": [
+        745,
+        510
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "One unit of billing",
+      "items": [
+        "message.id = the API response id",
+        "summing assistant lines over-bills 2-6x"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Understate, never spike",
+      "items": [
+        "unknown model: $0 + named",
+        "undated turn: off-peak",
+        "no TTL detail: 5m rate"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Two readers",
+      "items": [
+        "statusline charges only new bytes (offsets)",
+        "analyzer dedupes whole files"
+      ]
+    }
+  ]
+}

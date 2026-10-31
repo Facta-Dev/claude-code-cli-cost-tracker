@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "claude-code-cli-cost-tracker — module map", "output": "module-map.html", "quality_profile": "showcase" },
+  "components": [
+    { "id": "cc", "type": "external", "label": "Claude Code", "sublabel": "statusline host", "pos": [40, 250], "size": [130, 64] },
+    { "id": "sl", "type": "frontend", "label": "statusline.py", "sublabel": "render + payload-wins", "pos": [230, 120], "size": [150, 64] },
+    { "id": "cli", "type": "frontend", "label": "cccost.py → cli.py", "sublabel": "daily/weekly/monthly/session/models/merge", "pos": [230, 380], "size": [170, 64] },
+    { "id": "bill", "type": "backend", "label": "billing.py", "sublabel": "the one pricing seam", "pos": [470, 250], "size": [150, 64], "tag": "resolve · cost" },
+    { "id": "trans", "type": "backend", "label": "transcript.py", "sublabel": "shape · dedupe · discovery", "pos": [470, 100], "size": [150, 64] },
+    { "id": "state", "type": "database", "label": "session_state.py", "sublabel": "byte offsets per session", "pos": [470, 400], "size": [150, 64] },
+    { "id": "ana", "type": "backend", "label": "analysis.py", "sublabel": "build · CSVs · full_report", "pos": [700, 380], "size": [150, 64] },
+    { "id": "rep", "type": "backend", "label": "reports.py / report.py", "sublabel": "tables + text report", "pos": [700, 250], "size": [160, 64] },
+    { "id": "merge", "type": "backend", "label": "merge.py", "sublabel": "CSV-only dedupe", "pos": [700, 120], "size": [150, 64] },
+    { "id": "jsonl", "type": "database", "label": "~/.claude/projects/*.jsonl", "sublabel": "transcripts (+ subagents/)", "pos": [700, 510], "size": [170, 60] },
+    { "id": "sheet", "type": "database", "label": "prices.json", "sublabel": "date-stamped sheet", "pos": [230, 510], "size": [150, 60] },
+    { "id": "hist", "type": "database", "label": "state cache ~/.cache", "sublabel": "offsets + billed ids", "pos": [230, 640], "size": [150, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "cccost/ package", "wraps": ["bill", "trans", "state", "ana", "rep", "merge"] },
+    { "kind": "region", "label": "root entry scripts", "wraps": ["sl", "cli"] }
+  ],
+  "connections": [
+    { "id": "c1", "from": "cc", "to": "sl", "label": "JSON on stdin", "variant": "emphasis" },
+    { "id": "c2", "from": "sl", "to": "state", "label": "incremental bill" },
+    { "id": "c3", "from": "state", "to": "trans", "label": "turn_from_obj" },
+    { "id": "c4", "from": "sl", "to": "bill", "label": "Prices(path)" },
+    { "id": "c5", "from": "cli", "to": "ana", "label": "build()" },
+    { "id": "c6", "from": "ana", "to": "trans", "label": "iter_turns" },
+    { "id": "c7", "from": "ana", "to": "rep", "label": "rows → tables/CSVs" },
+    { "id": "c8", "from": "cli", "to": "merge", "label": "merge DIRs" },
+    { "id": "c9", "from": "sl", "to": "hist", "label": "load/save", "variant": "dashed" },
+    { "id": "c10", "from": "jsonl", "to": "trans", "label": "assistant lines" },
+    { "id": "c11", "from": "bill", "to": "sheet", "label": "rates per model", "variant": "dashed" },
+    { "id": "c12", "from": "cli", "to": "bill", "label": "Prices + off_peak" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "One pricing seam", "items": ["billing.py is the only place rates touch arithmetic", "aliases / :cloud / [1m] / tiers / -fast resolve there"] },
+    { "dot": "emerald", "title": "Two walkers", "items": ["statusline: byte-offset incremental reads", "analyzer: whole-file dedupe on message.id"] },
+    { "dot": "rose", "title": "Data at rest", "items": ["transcripts and state never leave the machine", "prices.json is the only maintenance surface"] }
+  ]
+}
