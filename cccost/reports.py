@@ -57,10 +57,7 @@ def period_rows(turn_rows: list[dict], command: str) -> list[dict]:
 def session_report_rows(session_rows: list[dict]) -> list[dict]:
     """Per-session rows in start order (oldest first), for the table/json."""
     cols = ("session_id", "repo", "models", "turns", "wall_clock_s", "cache_hit_rate", "cost_usd")
-    rows = []
-    for r in sorted(session_rows, key=lambda r: r.get("started_at") or ""):
-        rows.append({k: r.get(k) for k in cols})
-    return rows
+    return [{k: r.get(k) for k in cols} for r in sorted(session_rows, key=lambda r: r.get("started_at") or "")]
 
 
 def unpriced_note(prices) -> str:
@@ -68,9 +65,8 @@ def unpriced_note(prices) -> str:
     if prices.unknown:
         lines.append("!  models missing from the price sheet (counted, priced at $0): "
                      + ", ".join(sorted(prices.unknown)))
-    if getattr(prices, "fast_fallback", 0):
-        lines.append(f"!  fast-mode turns billed at base rates, missing -fast row: "
-                     f"{prices.fast_fallback}")
+    if prices.fast_fallback:
+        lines.append(f"!  fast-mode turns billed at base rates, missing -fast row: {prices.fast_fallback}")
     return "\n".join(lines) + "\n" if lines else ""
 
 
@@ -159,11 +155,8 @@ def emit(command: str, period_or_session_rows: list[dict], prices, want_json: bo
             "total_cost_usd": round(sum(float(r.get("cost_usd") or 0) for r in period_or_session_rows), 4),
         }, indent=2, default=str))
         return 0
-    label = {"daily": "DAILY USAGE", "weekly": "WEEKLY USAGE",
-             "monthly": "MONTHLY USAGE", "session": "SESSION USAGE",
-             "models": "MODEL USAGE"}[command]
-    unit = {"daily": "days", "weekly": "weeks", "monthly": "months",
-            "session": "sessions", "models": "models"}[command]
+    label = f"{command.upper()} USAGE"  # emit only sees the five table views
+    unit = command + "s"
     if command in ("daily", "weekly", "monthly"):
         body = render_period(period_or_session_rows, command)
     else:

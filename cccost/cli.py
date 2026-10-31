@@ -48,7 +48,7 @@ def main(argv: list[str] | None = None) -> int:
     if not argv or argv[0] in ("-h", "--help"):
         print(__doc__)
         return 0
-    command = argv[0] if argv and argv[0] in COMMANDS else None
+    command = argv[0] if argv[0] in COMMANDS else None
     if command:
         argv.pop(0)
     parser = argparse.ArgumentParser(add_help=False)

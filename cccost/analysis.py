@@ -9,12 +9,12 @@ this one only aggregates and emits CSVs.
 from __future__ import annotations
 
 import csv
-import json
 import sys
 from collections import defaultdict
 from pathlib import Path
 
 from cccost.billing import TOKEN_FIELDS, Prices
+from cccost.report import report
 from cccost.transcript import discover, iter_turns, parse_ts, repo_of
 
 
@@ -133,7 +133,7 @@ def load_prices(path: Path) -> Prices:
     """Price sheet with a loud exit on a broken/undated sheet."""
     try:
         return Prices(path)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError) as exc:  # JSONDecodeError is a ValueError
         sys.exit(str(exc))
 
 
@@ -158,8 +158,6 @@ def list_repos(projects_dir: Path) -> None:
 
 def full_report(projects_dir: Path, repos: list[str], prices, out_dir: Path, curve_bins: int) -> int:
     """analyze-history's whole flow: build, CSVs, text report, summary."""
-    from cccost.report import report as render_report
-
     session_rows, turn_rows, skipped = build(projects_dir, repos, prices)
     if not session_rows:
         sys.exit(
@@ -170,7 +168,7 @@ def full_report(projects_dir: Path, repos: list[str], prices, out_dir: Path, cur
     turn_csv = Path(out_dir) / "turns.csv"
     write_csv(session_csv, session_rows)
     write_csv(turn_csv, turn_rows)
-    render_report(session_rows, turn_rows, prices, curve_bins)
+    report(session_rows, turn_rows, prices, curve_bins)
     print(f"   wrote {session_csv}  ({len(session_rows)} rows)")
     print(f"   wrote {turn_csv}  ({len(turn_rows)} rows)")
     if skipped:

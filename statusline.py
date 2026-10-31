@@ -99,7 +99,8 @@ def render(payload: dict) -> None:
         if sid and transcript and os.path.exists(transcript):
             try:
                 state = session_state.load_state(sid)
-                if not isinstance(state.get("path"), str) or Path(state["path"]) != Path(transcript):
+                if not isinstance(state.get("path"), str) \
+                        or Path(state["path"]).resolve() != Path(transcript).resolve():
                     state = session_state.reset_state(str(transcript))
                 prices = billing.Prices(Path(PRICES_PATH))
                 session_state.bill_new_lines(state, str(transcript), prices)

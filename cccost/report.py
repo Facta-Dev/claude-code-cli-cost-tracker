@@ -11,7 +11,7 @@ import statistics
 import sys
 from collections import defaultdict
 
-TOKEN_FIELDS = ("input", "output", "cache_read", "cache_write_5m", "cache_write_1h")
+from cccost.billing import TOKEN_FIELDS
 
 
 def money(value: float) -> str:

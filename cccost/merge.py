@@ -71,13 +71,11 @@ def merge(inputs: list[Path], out_dir: Path) -> int:
     if not total:
         sys.exit("nothing to merge: no rows in the given exports")
 
-    fieldnames: dict[str, list[str]] = {k: [] for k in KINDS}
-    for kind in KINDS:
-        seen: dict[str, None] = {}
-        for row in merged[kind].values():
-            for col in row:
-                seen.setdefault(col, None)
-        fieldnames[kind] = list(seen)
+    # union of row columns, first-seen order (exports differ in their column subsets)
+    fieldnames = {
+        kind: list({c: None for row in merged[kind].values() for c in row})
+        for kind in KINDS
+    }
 
     out_dir.mkdir(parents=True, exist_ok=True)
     for kind in KINDS:

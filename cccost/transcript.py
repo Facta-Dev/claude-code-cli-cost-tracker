@@ -112,12 +112,9 @@ def discover(projects_dir: Path) -> dict[tuple[str, str], list[Path]]:
     sessions: dict[tuple[str, str], list[Path]] = defaultdict(list)
     for path in sorted(projects_dir.rglob("*.jsonl")):
         rel = path.relative_to(projects_dir)
-        slug = rel.parts[0]
-        if len(rel.parts) == 2:
-            session_id = path.stem
-        elif len(rel.parts) >= 3:
-            session_id = rel.parts[1]  # <project>/<session-id>/subagents/agent-*.jsonl
-        else:
+        if len(rel.parts) < 2:  # a bare *.jsonl directly under projects/ is no session
             continue
-        sessions[(slug, session_id)].append(path)
+        # len 2: <project>/<session-id>.jsonl — len 3+: the session's subagents/
+        session_id = path.stem if len(rel.parts) == 2 else rel.parts[1]
+        sessions[(rel.parts[0], session_id)].append(path)
     return sessions

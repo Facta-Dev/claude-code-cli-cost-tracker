@@ -89,7 +89,7 @@ def bill_new_lines(state: dict, transcript_path: str, prices) -> None:
         for line in chunk[:cut].split(b"\n"):
             try:
                 turn = turn_from_obj(json.loads(line.decode("utf-8", "replace")))
-            except (json.JSONDecodeError, UnicodeDecodeError):
+            except json.JSONDecodeError:  # decode("replace") above cannot raise UnicodeDecodeError
                 continue
             if turn is None:
                 continue  # non-assistant or usage-less line — no spend
