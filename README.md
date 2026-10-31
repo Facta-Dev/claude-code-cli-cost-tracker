@@ -53,6 +53,26 @@ which runs the tests and does it for you. The full manual is
   [CHANGELOG.md](CHANGELOG.md) · [install.sh](install.sh) · CI runs the
   test suite on every push (Python 3.10 / 3.12 / 3.13)
 
+## Architecture
+
+Static snapshots here; interactive versions (hover + trace animation) in
+[docs/architecture/](docs/architecture/README.md). Specs (`.json`) are the
+source of truth — edit, re-render, commit both.
+
+**Module map** — root launchers, the `cccost/` package, data at rest:
+
+![module map](docs/architecture/module-map.svg)
+
+**Billing dataflow** — transcript lines → `message.id` dedupe → the `cost()`
+pricing seam → the three surfaces:
+
+![billing dataflow](docs/architecture/billing.dataflow.svg)
+
+**One status-line render** — payload → incremental byte-offset billing →
+state → the line, with the never-dark fallback:
+
+![render lifecycle](docs/architecture/render.sequence.svg)
+
 ## How billing works (the honest-billing rules)
 
 - **The transcript is the source of truth.** Claude Code writes one JSONL
