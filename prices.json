@@ -1,0 +1,86 @@
+{
+  "_comment": [
+    "Date-stamped price sheet for claude-code-cli-cost-tracker.",
+    "Units: USD per 1,000,000 tokens. Two sources, each verified on its date:",
+
+    "  • Ollama Cloud rows (off_peak: true) — transcribed from",
+    "    ollama.com/pricing on the as_of date. Their 'cached input' rate is",
+    "    stored as cache_read. Ollama publishes no separate cache-write",
+    "    rate, so writes bill at the input rate (both TTLs). Rows tagged",
+    "    off_peak bill at half the listed rate during Ollama's off-peak",
+    "    window (weekends + weekdays outside 12:00-18:00 UTC), applied only",
+    "    with the analyzer's --off-peak flag.",
+    "    Not priced: 'clef' (no published output/cached rate -> $0) and",
+    "    qwen3-coder (absent from Ollama's table) — turns on unpriced",
+    "    models are counted, billed $0, and named in the output.",
+    "    Ollama plans (Pro/Max/Team) spend monthly usage credits at these",
+    "    token rates, so figures track credits consumed, not cash.",
+
+    "  • Claude rows — first-party Anthropic API list rates (model table",
+    "    verified 2026-10-06). Writes use the standard multipliers: 5m =",
+    "    1.25x input, 1h = 2.0x input. cache_read is per-model as",
+    "    published — no longer uniformly 0.1x input (Fable 5.1 $0.25,",
+    "    Opus 5.5 $0.20, Sonnet 5.5 $0.20).",
+    "    claude-mythos-5-1 is Project Glasswing only.",
+    "    claude-haiku-5-5 is tiered: shown rates are up-to-100K; beyond",
+    "    that it bills $0.50 input / $2.50 output, so big-prompt turns are",
+    "    under-priced by this sheet.",
+    "    Claude fast mode (Opus 5 / 5.5, 2x rates) is not auto-detected",
+    "    per turn; add rows manually if you need it.",
+    "    Under a Claude subscription plan these figures are 'equivalent",
+    "    API cost', not money billed.",
+
+    "aliases map transcript model strings to sheet keys. resolve() also",
+    "strips '[1m]'-style context-window suffixes and Ollama ':cloud' tags.",
+    "To reprice history against other rates: copy this file, edit it, and",
+    "pass --prices to the analyzer."
+  ],
+
+  "as_of": "2026-10-30",
+  "currency": "USD",
+  "unit": "per_1m_tokens",
+  "off_peak_factor": 0.5,
+
+  "models": {
+    "claude-fable-5-1":     { "input": 10.00, "output": 50.00, "cache_read": 0.25, "cache_write_5m": 12.50, "cache_write_1h": 20.00 },
+    "claude-mythos-5-1":    { "input": 10.00, "output": 50.00, "cache_read": 0.25, "cache_write_5m": 12.50, "cache_write_1h": 20.00 },
+    "claude-fable-5":       { "input": 10.00, "output": 50.00, "cache_read": 1.00, "cache_write_5m": 12.50, "cache_write_1h": 20.00 },
+    "claude-opus-5-5":      { "input": 4.00,  "output": 20.00, "cache_read": 0.20, "cache_write_5m": 5.00,  "cache_write_1h": 8.00 },
+    "claude-opus-5":        { "input": 5.00,  "output": 25.00, "cache_read": 0.50, "cache_write_5m": 6.25,  "cache_write_1h": 10.00 },
+    "claude-opus-4-8":      { "input": 5.00,  "output": 25.00, "cache_read": 0.50, "cache_write_5m": 6.25,  "cache_write_1h": 10.00 },
+    "claude-opus-4-7":      { "input": 5.00,  "output": 25.00, "cache_read": 0.50, "cache_write_5m": 6.25,  "cache_write_1h": 10.00 },
+    "claude-opus-4-6":      { "input": 5.00,  "output": 25.00, "cache_read": 0.50, "cache_write_5m": 6.25,  "cache_write_1h": 10.00 },
+    "claude-sonnet-5-5":    { "input": 2.00,  "output": 10.00, "cache_read": 0.20, "cache_write_5m": 2.50,  "cache_write_1h": 4.00 },
+    "claude-sonnet-5":      { "input": 2.00,  "output": 10.00, "cache_read": 0.20, "cache_write_5m": 2.50,  "cache_write_1h": 4.00 },
+    "claude-sonnet-4-6":    { "input": 3.00,  "output": 15.00, "cache_read": 0.30, "cache_write_5m": 3.75,  "cache_write_1h": 6.00 },
+    "claude-haiku-5-5":     { "input": 0.10,  "output": 0.50,  "cache_read": 0.01, "cache_write_5m": 0.125, "cache_write_1h": 0.20, "note": "tiered: >100K input bills 0.50/2.50" },
+    "claude-haiku-4-5":     { "input": 1.00,  "output": 5.00,  "cache_read": 0.10, "cache_write_5m": 1.25,  "cache_write_1h": 2.00 },
+
+    "deepseek-v4.1-flash":   { "input": 0.30,  "output": 1.20,  "cache_read": 0.006, "cache_write_5m": 0.30,  "cache_write_1h": 0.30, "off_peak": true },
+    "deepseek-v4-pro":       { "input": 1.32,  "output": 3.96,  "cache_read": 0.044, "cache_write_5m": 1.32,  "cache_write_1h": 1.32, "off_peak": true },
+    "gemma4":                { "input": 0.14,  "output": 0.40,  "cache_read": 0.05,  "cache_write_5m": 0.14,  "cache_write_1h": 0.14, "off_peak": true },
+    "glm-5.2":               { "input": 1.40,  "output": 4.40,  "cache_read": 0.26,  "cache_write_5m": 1.40,  "cache_write_1h": 1.40, "off_peak": true },
+    "glm-5.3":               { "input": 1.40,  "output": 4.40,  "cache_read": 0.26,  "cache_write_5m": 1.40,  "cache_write_1h": 1.40, "off_peak": true },
+    "glm-5.3-flash":         { "input": 0.15,  "output": 0.50,  "cache_read": 0.03,  "cache_write_5m": 0.15,  "cache_write_1h": 0.15, "off_peak": true },
+    "gpt-oss:120b":          { "input": 0.15,  "output": 0.60,  "cache_read": 0.014, "cache_write_5m": 0.15,  "cache_write_1h": 0.15, "off_peak": true },
+    "gpt-oss:20b":           { "input": 0.07,  "output": 0.30,  "cache_read": 0.035, "cache_write_5m": 0.07,  "cache_write_1h": 0.07, "off_peak": true },
+    "kimi-k2.6":             { "input": 0.95,  "output": 4.00,  "cache_read": 0.16,  "cache_write_5m": 0.95,  "cache_write_1h": 0.95, "off_peak": true },
+    "kimi-k2.7-code":        { "input": 0.95,  "output": 4.00,  "cache_read": 0.19,  "cache_write_5m": 0.95,  "cache_write_1h": 0.95, "off_peak": true },
+    "kimi-k3":               { "input": 3.00,  "output": 15.00, "cache_read": 0.30,  "cache_write_5m": 3.00,  "cache_write_1h": 3.00, "off_peak": true },
+    "mimo-v2.6-flash":       { "input": 0.14,  "output": 0.28,  "cache_read": 0.0028,"cache_write_5m": 0.14,  "cache_write_1h": 0.14, "off_peak": true },
+    "mimo-v2.6-pro":         { "input": 0.435, "output": 0.87,  "cache_read": 0.0036,"cache_write_5m": 0.435, "cache_write_1h": 0.435, "off_peak": true },
+    "minimax-m2.7":          { "input": 0.30,  "output": 1.20,  "cache_read": 0.06,  "cache_write_5m": 0.30,  "cache_write_1h": 0.30, "off_peak": true },
+    "minimax-m3":            { "input": 0.60,  "output": 2.40,  "cache_read": 0.12,  "cache_write_5m": 0.60,  "cache_write_1h": 0.60, "off_peak": true },
+    "minimax-m3.1-flash":    { "input": 0.15,  "output": 0.60,  "cache_read": 0.015, "cache_write_5m": 0.15,  "cache_write_1h": 0.15, "off_peak": true },
+    "mistral-large-3":       { "input": 0.50,  "output": 1.50,  "cache_read": 0.50,  "cache_write_5m": 0.50,  "cache_write_1h": 0.50, "off_peak": true },
+    "mistral-large-4":       { "input": 0.70,  "output": 2.10,  "cache_read": 0.07,  "cache_write_5m": 0.70,  "cache_write_1h": 0.70, "off_peak": true },
+    "muse-spark-open":       { "input": 1.25,  "output": 4.25,  "cache_read": 0.15,  "cache_write_5m": 1.25,  "cache_write_1h": 1.25, "off_peak": true },
+    "nemotron-3-nano":       { "input": 0.06,  "output": 0.24,  "cache_read": 0.06,  "cache_write_5m": 0.06,  "cache_write_1h": 0.06, "off_peak": true },
+    "nemotron-3-super":      { "input": 0.015, "output": 0.60,  "cache_read": 0.015, "cache_write_5m": 0.015, "cache_write_1h": 0.015, "off_peak": true },
+    "nemotron-3-ultra":      { "input": 0.10,  "output": 3.00,  "cache_read": 0.10,  "cache_write_5m": 0.10,  "cache_write_1h": 0.10, "off_peak": true }
+  },
+
+  "aliases": {
+    "glm-5.3-flash:cloud": "glm-5.3-flash"
+  }
+}
