@@ -8,11 +8,6 @@ sessions from the token usage Claude Code already writes to disk — whatever
 backend you use, including **Ollama Cloud-backed Claude Code**, where Claude
 Code's own cost figures are unavailable.
 
-Adapted from, and standing on, the open-source **cost-per-turn** project and
-**ccusage** ([github.com/ccusage/ccusage](https://github.com/ccusage/ccusage)
-by [@ryoppippi](https://github.com/ryoppippi), MIT) — see
-[Credits](#credits).
-
 ```
 📁 cost-lab │ ⏱ 10m 32s │ ▲ +118 -40 │ ◔ 380k/1M ▓▓▓░░░░░ 38% │ $2.98 │ ◆ GLM 5.3 Flash
 ```
@@ -147,21 +142,16 @@ exports — it scans no transcripts and needs no `--repo`.
 
 ## Credits
 
-Standing on open source — adapted from, and inspired by:
+This is our own implementation — inspired by two open-source projects:
 
-- **[cost-per-turn](https://www.youtube.com/watch?v=I2a0EJ67cVo)** — the origin
-  of the transcript-billing data model (per-turn token billing, `message.id`
-  dedupe, cache-TTL split, subagent folding, the date-stamped price sheet, and
-  the required-`--repo` privacy guardrail). Its status line inspired ours; the
-  live meter's self-billing from the transcript is what makes it correct for
-  non-Anthropic backends.
+- **[cost-per-turn](https://www.youtube.com/watch?v=I2a0EJ67cVo)** — inspired
+  the direction: billing turns from the token usage transcripts already
+  contain. This repo's code, billing rules, price sheet, and guardrail are an
+  independent implementation.
 - **[ccusage](https://github.com/ccusage/ccusage)** by
-  [@ryoppippi](https://github.com/ryoppippi) (MIT) — ccusage's aggregate
-  report views (daily / weekly / monthly / session) shaped this project's
-  report CLI; ours is a stdlib-native take with the same guardrail and its
-  own date-stamped sheet.
+  [@ryoppippi](https://github.com/ryoppippi) (MIT) — inspired the report
+  views (daily / weekly / monthly / session). The report CLI here is our own
+  stdlib-native build.
 
-Both reference repos sit outside this repository; only the ideas crossed the
-boundary — and the boundary is stated here. Both upstreams deserve the
-goodwill: try ccusage for its multi-CLI, multi-source reports, and cost-per-turn
-for the status line origin story.
+Try both upstreams too: ccusage for its multi-CLI, multi-source reports, and
+cost-per-turn for the status-line origin story.
