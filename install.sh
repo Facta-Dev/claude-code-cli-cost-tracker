@@ -22,4 +22,10 @@ replace — and read INSTALL.md §2 for the details):
     }
 
 The next Claude Code session shows the live meter; /cccost works, too.
+
+For the iTerm2 session-status detail (cost next to the state dot), point
+the Stop hook at the wrapper:
+
+    "Stop": [ { "hooks": [ { "type": "command",
+      "command": "/Users/YOU/.claude/hooks/cc-status-with-cost.sh" } ] } ]
 EOF
