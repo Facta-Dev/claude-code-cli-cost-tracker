@@ -38,7 +38,7 @@ def period_rows(turn_rows: list[dict], command: str) -> list[dict]:
         key = bucket_key(command, turn.get("timestamp") or "")
         b = buckets.setdefault(key, {
             "turns": 0, "cost_usd": 0.0, "input_tokens": 0, "output_tokens": 0,
-            "cache_read_tokens": 0, "cache_write_tokens": 0, "by_repo": {},
+            "cache_read_tokens": 0, "cache_write_tokens": 0,
         })
         b["turns"] += 1
         b["cost_usd"] += float(turn.get("cost_usd") or 0.0)
@@ -48,10 +48,8 @@ def period_rows(turn_rows: list[dict], command: str) -> list[dict]:
         b["cache_write_tokens"] += (
             int(turn.get("cache_write_5m_tokens") or 0) + int(turn.get("cache_write_1h_tokens") or 0)
         )
-        repo = turn.get("repo") or "?"
-        b["by_repo"][repo] = b["by_repo"].get(repo, 0.0) + float(turn.get("cost_usd") or 0.0)
     return [
-        {**b, "key": key, "cost_usd": round(b["cost_usd"], 4), "by_repo": b["by_repo"]}
+        {**b, "key": key, "cost_usd": round(b["cost_usd"], 4)}
         for key, b in sorted(buckets.items(), key=lambda kv: (kv[0] == "?", kv[0]))
     ]
 
@@ -164,12 +162,14 @@ def emit(command: str, period_or_session_rows: list[dict], prices, want_json: bo
     label = {"daily": "DAILY USAGE", "weekly": "WEEKLY USAGE",
              "monthly": "MONTHLY USAGE", "session": "SESSION USAGE",
              "models": "MODEL USAGE"}[command]
-    body = render_period(period_or_session_rows, command) if command in ("daily", "weekly", "monthly") \
-        else render_models(period_or_session_rows) if command == "models" \
-        else render_session(period_or_session_rows)
+    unit = {"daily": "days", "weekly": "weeks", "monthly": "months",
+            "session": "sessions", "models": "models"}[command]
+    if command in ("daily", "weekly", "monthly"):
+        body = render_period(period_or_session_rows, command)
+    else:
+        body = (render_models if command == "models" else render_session)(period_or_session_rows)
     sys.stdout.write(
-        f"\n  {label}  ·  {len(period_or_session_rows)} "
-        f"{'days' if command == 'daily' else 'weeks' if command == 'weekly' else 'months' if command == 'monthly' else 'models' if command == 'models' else 'sessions'}"
+        f"\n  {label}  ·  {len(period_or_session_rows)} {unit}"
         f"  ·  priced against {prices.path.name} as of {prices.as_of}\n\n"
         + body + "\n"
     )

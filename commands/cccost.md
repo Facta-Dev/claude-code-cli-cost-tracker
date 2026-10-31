@@ -1,6 +1,6 @@
 ---
 description: Cost reports from local Claude Code transcripts (cccost CLI)
-allowed-tools: Bash(python3 $HOME/.claude/cccost.py *):, Bash(python3 ~/.claude/cccost.py *):, Read(~/.claude/prices.json):, Read(~/.claude/cccost/)
+allowed-tools: Bash(python3 $HOME/.claude/cccost.py *):, Bash(python3 ~/.claude/cccost.py *):
 ---
 
 # cccost — cost reports
