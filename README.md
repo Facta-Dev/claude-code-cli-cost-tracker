@@ -12,8 +12,12 @@ project — same data model, retargeted billing.
 
 | file | what it is |
 | --- | --- |
-| `statusline.py` | Live cost meter for Claude Code's status line: session cost is computed from the transcript, incrementally, per turn |
-| `analyze-history.py` | Prices your entire transcript history against `prices.json` — cost per turn, cache hit rate, spend by repo |
+| `statusline.py` | Live cost meter entry point for Claude Code's status line |
+| `analyze-history.py` | Analyzer entry point: CLI, guardrail, CSVs |
+| `cccost/billing.py` | The one pricing seam: usage token classes, model resolution (`:cloud`, `[1m]`, aliases), per-turn cost, off-peak |
+| `cccost/transcript.py` | Transcript shape knowledge: per-line extraction, `message.id` dedupe, session discovery, repo naming |
+| `cccost/session_state.py` | The status line's incremental per-session billing store (byte offsets per transcript file) |
+| `cccost/report.py` | The analyzer's text report (a byte-compat surface) |
 | `prices.json` | Date-stamped price sheet: every priced Ollama Cloud model + first-party Claude models, USD per 1M tokens |
 | `tests/` | A synthetic fixture reproducing every awkward transcript shape, plus the billing checks |
 
@@ -23,7 +27,7 @@ Python 3.10+, standard library only, nothing leaves your machine.
 
 ```bash
 mkdir -p ~/.claude
-cp statusline.py prices.json ~/.claude/
+cp -r cccost statusline.py prices.json ~/.claude/
 ```
 
 Add to `~/.claude/settings.json` (absolute path — `~` is not expanded there):
@@ -73,6 +77,11 @@ python3 analyze-history.py --repo my-project --off-peak   # bill Ollama rows at 
 The `--repo` filter is required — transcripts mix personal and work-adjacent
 sessions, and a cost report is the kind of artifact that gets pasted into
 somewhere public. Inclusion must be a deliberate act.
+
+`--off-peak` is a **blanket half rate over the entire selection** on rows
+tagged `off_peak` — it does not check timestamps against Ollama's off-peak
+window. Use it for off-peak-dominated history (e.g. weekend sessions);
+otherwise the peak rates apply. First-party Claude rows are never discounted.
 
 Output: the cost-per-turn curve across your longest session, your real cache
 hit rate, spend grouped by repo, and two CSVs in `out/` (`sessions.csv`, one

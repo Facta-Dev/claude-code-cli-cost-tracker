@@ -4,7 +4,8 @@
     python3 tests/test_billing.py          # no dependencies needed
     pytest tests/test_billing.py
 
-Regenerates the synthetic fixture, then checks the analyzer's arithmetic,
+Regenerates the synthetic fixture, pins the shared billing core directly
+against the shipped price sheet, then checks the analyzer's arithmetic,
 dedup, off-peak and --repo guardrail, and the statusline's incremental
 billing against known-good numbers.
 """
@@ -23,6 +24,9 @@ PY = sys.executable
 PROJECTS = ROOT / "tests" / "fixtures" / "projects"
 REPO_NAME = "cost-lab"
 SLUG = PROJECTS / "-Users-demo-repos-cost-lab"
+
+sys.path.insert(0, str(ROOT))
+from cccost.billing import Prices, usage_tokens  # noqa: E402
 
 
 def run(script: Path, *args: str, env: dict | None = None, payload: str | None = None):
@@ -72,6 +76,39 @@ def analyze(*args: str):
         yield proc, td
 
 
+# ---- the billing core, pinned directly (would catch resolver drift) ------
+
+
+def test_resolver_pins_real_sheet():
+    """Every decoration resolves: alias, :cloud, [1m], compounds, exact keys."""
+    prices = Prices(ROOT / "prices.json")
+    assert prices.resolve("glm-5.3-flash") == "glm-5.3-flash"
+    assert prices.resolve("glm-5.3-flash:cloud") == "glm-5.3-flash"
+    assert prices.resolve("glm-5.3-flash:cloud[1m]") == "glm-5.3-flash"
+    assert prices.resolve("claude-sonnet-5-5[1m]") == "claude-sonnet-5-5"
+    assert prices.resolve("gpt-oss:120b") == "gpt-oss:120b"  # a tag, not a :cloud suffix
+    assert prices.resolve("model-not-on-sheet") == "model-not-on-sheet"
+    assert prices.cost("model-not-on-sheet", usage_tokens({"input_tokens": 1})) is None
+    assert prices.cost("<synthetic>", usage_tokens({})) == 0.0
+
+
+def test_usage_token_classes():
+    """TTL split when present, fallback to 5m when not — understatement, never spike."""
+    tok = usage_tokens({
+        "input_tokens": 10, "output_tokens": 3,
+        "cache_creation_input_tokens": 7,
+        "cache_creation": {"ephemeral_5m_input_tokens": 4, "ephemeral_1h_input_tokens": 3},
+    })
+    assert tok == {"input": 10, "output": 3, "cache_read": 0, "cache_write_5m": 4, "cache_write_1h": 3}
+    fallback = usage_tokens({"cache_creation_input_tokens": 7})
+    assert fallback["cache_write_5m"] == 7 and fallback["cache_write_1h"] == 0
+    nothing = usage_tokens({})
+    assert nothing == {"input": 0, "output": 0, "cache_read": 0, "cache_write_5m": 0, "cache_write_1h": 0}
+
+
+# ---- analyzer end-to-end ------------------------------------------------
+
+
 def test_repo_guardrail():
     """Unlisted repos go nowhere: --list-repos shows names only."""
     proc = run(ROOT / "analyze-history.py", "--list-repos", "--projects-dir", str(PROJECTS))
@@ -92,7 +129,7 @@ def test_analyzer_billing():
         sessions = read_csv(Path(out) / "sessions.csv")
         turns = read_csv(Path(out) / "turns.csv")
 
-        assert len(turns) == 7, "dupes must collapse to one row per message id"
+        assert len(turns) == 7, "dupes and corrupt-usage lines must not bill"
         a = session_row(sessions, "sessA")
         b = session_row(sessions, "sessB")
 
@@ -125,6 +162,9 @@ def test_unpriced_models_named():
         assert int(session_row(sessions, "sessA")["unpriced_turns"]) == 1
 
 
+# ---- status line ---------------------------------------------------------
+
+
 def statusline(payload: dict, cache_dir: str) -> str:
     proc = run(
         ROOT / "statusline.py",
@@ -137,7 +177,8 @@ def statusline(payload: dict, cache_dir: str) -> str:
 
 def test_statusline_self_bills_incrementally():
     """Payload cost is dead under Ollama; cost comes from the transcript,
-    and re-renders bill only NEW lines (offsets, not totals)."""
+    re-renders bill only NEW lines (offsets, not totals), and subagent
+    transcripts bill to the parent session."""
     make_fixture()  # fresh transcript
     fixture = SLUG / "sessA.jsonl"
     payload = {
@@ -152,15 +193,28 @@ def test_statusline_self_bills_incrementally():
         assert "$2.98" in out1 and "cost-lab" in out1 and "10m 32s" in out1
         assert "▲ +118 -40" in out1
 
-        # a turn arrives mid-session
+        # a turn arrives mid-session (three duplicate content-block lines
+        # must still bill once)
+        turn = {
+            "type": "assistant",
+            "message": {"id": "msg_005", "model": "glm-5.3-flash",
+                        "usage": {"input_tokens": 10_000_000, "output_tokens": 1_000_000}},
+        }
         with open(fixture, "a") as fh:
-            fh.write(json.dumps({
-                "type": "assistant",
-                "message": {"id": "msg_005", "model": "glm-5.3-flash",
-                            "usage": {"input_tokens": 10_000_000, "output_tokens": 1_000_000}},
-            }) + "\n")
+            fh.write(json.dumps(turn) + "\n" + json.dumps(turn) + "\n")
         out2 = statusline(payload, cd)
         assert "$4.98" in out2, f"incremental rerun must show +$2.00: {out2}"
+
+        # a subagent transcript appears for the parent session
+        sub = SLUG / "sessA" / "subagents"
+        sub.mkdir(parents=True, exist_ok=True)
+        (sub / "agent-1.jsonl").write_text(json.dumps({
+            "type": "assistant",
+            "message": {"id": "msg_SUB_A1", "model": "glm-5.3-flash",
+                        "usage": {"input_tokens": 4_000_000, "output_tokens": 1_000_000}},
+        }) + "\n")
+        out3 = statusline(payload, cd)
+        assert "$6.08" in out3, f"subagent spend must fold in (+$1.10): {out3}"
 
 
 def test_statusline_payload_cost_wins_when_native():
@@ -195,9 +249,11 @@ def test_statusline_flags_unpriced_models():
 
 
 def test_statusline_survives_garbage():
-    """Unreadable payload -> exit 0 with a fallback line, never dark."""
+    """Unreadable payload, or corrupt-but-valid-JSON lines, never go dark."""
     proc = run(ROOT / "statusline.py", payload="not json")
     assert proc.returncode == 0 and "⚠" in proc.stdout
+    proc = run(ROOT / "statusline.py", payload="[]")  # a JSONL-array payload shape
+    assert proc.returncode == 0
 
 
 def main() -> int:

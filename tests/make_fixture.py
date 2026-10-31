@@ -10,6 +10,8 @@ Every awkward shape the tracker must survive, on purpose:
   - a mid-session model switch (pricing follows each turn's model),
   - an unpriced model (billed $0, counted, named),
   - a <synthetic> zero-usage line,
+  - an assistant line whose usage is a truthy non-dict (corrupt but
+    valid JSON) — must be skipped, not crash the run,
   - a nested subagent transcript billing to the parent session,
   - non-assistant lines with no usage, and a malformed line.
 
@@ -76,6 +78,7 @@ def main(projects_dir: Path) -> None:
         "not-json-at-all\n",
         assistant("msg_002", "glm-5.2", usage({"input_tokens": 500_000, "output_tokens": 200_000}), "09:00:10Z"),
         assistant("msg_003", "unknown-model-x", usage({"input_tokens": 700_000, "output_tokens": 100_000}), "09:00:20Z"),
+        line({"type": "assistant", "message": {"id": "msg_bad", "model": "glm-5.3-flash", "usage": "corrupt"}}),
         line({"type": "user", "message": {"role": "user", "content": "next"}}),
         assistant("msg_004", "<synthetic>", {"input_tokens": 0, "output_tokens": 0}, "09:00:30Z"),
     ]
