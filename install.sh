@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Install the tracker into ~/.claude (idempotent — safe to re-run).
+# See INSTALL.md for what lands where and how to uninstall.
+set -euo pipefail
+cd "$(dirname "$0")"
+
+python3 tests/test_billing.py
+mkdir -p ~/.claude/commands
+cp -r cccost statusline.py cccost.py prices.json ~/.claude/
+cp commands/cccost.md ~/.claude/commands/
+
+cat <<EOF
+
+Installed. Now add the status line to ~/.claude/settings.json (merge, don't
+replace — and read INSTALL.md §2 for the details):
+
+    "statusLine": {
+      "type": "command",
+      "command": "python3 $HOME/.claude/statusline.py",
+      "refreshInterval": 5
+    }
+
+The next Claude Code session shows the live meter; /cccost works, too.
+EOF

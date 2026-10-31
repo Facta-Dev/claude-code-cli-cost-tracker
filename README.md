@@ -39,8 +39,15 @@ by [@ryoppippi](https://github.com/ryoppippi), MIT) — see
 
 ## Quickstart
 
-See [QUICKSTART.md](QUICKSTART.md) (3 commands) and the full manual in
+See [QUICKSTART.md](QUICKSTART.md) (3 commands) — or run `./install.sh`,
+which runs the tests and does it for you. The full manual is
 [INSTALL.md](INSTALL.md).
+
+## Project
+
+- [LICENSE](LICENSE) (MIT) · [CONTRIBUTING.md](CONTRIBUTING.md) ·
+  [CHANGELOG.md](CHANGELOG.md) · [install.sh](install.sh) · CI runs the
+  test suite on every push (Python 3.10 / 3.12 / 3.13)
 
 ## How billing works (the honest-billing rules)
 
