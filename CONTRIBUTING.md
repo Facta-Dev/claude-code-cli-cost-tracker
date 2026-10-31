@@ -30,9 +30,15 @@ project cheap to maintain.
 # How to work here
 
 ```bash
-python3 tests/test_billing.py   # the suite, stdlib only (pytest not required)
+python3 tests/test_billing.py        # all four suites, stdlib only (no pytest)
+python3 tests/unit/tests.py          # one suite alone
 ```
 
+Suites: `tests/unit/` (billing core vs the sheet, in-process),
+`tests/contracts/` (CLI/output surfaces other things rely on),
+`tests/integrations/` (transcript → rows → CSV pipelines),
+`tests/e2e/` (every user surface: cccost CLI runs, statusline payloads).
+Each is a plain python3 file; `tests/test_billing.py` aggregates them.
 Tests are subprocess-level and import the billing core directly; keep them
 green, extend them when behavior changes. Python 3.10+.
 

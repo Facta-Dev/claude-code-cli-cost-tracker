@@ -38,7 +38,7 @@ by [@ryoppippi](https://github.com/ryoppippi), MIT) — see
 | `cccost/report.py` | The analyzer's text report (byte-compat surface) |
 | `commands/cccost.md` | `/cccost` slash command for Claude Code (reports from inside a session) |
 | `prices.json` | Date-stamped sheet: every priced Ollama Cloud model + all current first-party Claude models, USD per 1M tokens |
-| `tests/` | Synthetic fixture + checks: content-block dedupe, TTL split, model switch, unpriced models, subagents, corrupt lines |
+| `tests/` | Four suites (unit / contracts / integrations / e2e), plain-python runners + aggregator; fixture reproducing every awkward transcript shape |
 
 ## Quickstart
 
