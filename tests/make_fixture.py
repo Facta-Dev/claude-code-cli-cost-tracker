@@ -89,12 +89,16 @@ def main(projects_dir: Path) -> None:
     ]
     (slug / "sessA.jsonl").write_text("\n".join(a_lines) + "\n")
 
-    # -- session B: a first-party Claude turn beside Ollama turns, and a
-    #    subagent transcript billing to the parent session ----------------
+    # -- session B: a first-party Claude turn beside Ollama turns, an
+    #    off-peak-window turn and a peak-window turn (Friday 14:00 UTC),
+    #    and a subagent transcript billing to the parent session --------
     b_lines = [
         line({"type": "user", "message": {"role": "user", "content": "go"}}),
         assistant("msg_B1", "glm-5.3-flash", usage({"input_tokens": 2_000_000, "cache_read_input_tokens": 8_000_000, "output_tokens": 100_000}), "09:10:00Z"),
         assistant("msg_B2", "claude-sonnet-5", usage({"input_tokens": 1_000_000, "output_tokens": 100_000}), "09:10:10Z"),
+        line({"type": "user", "message": {"role": "user", "content": "more"}}),
+        assistant("msg_B3", "glm-5.3-flash", usage({"input_tokens": 10_000_000, "output_tokens": 1_000_000}), "09:30:00Z"),
+        assistant("msg_B4", "glm-5.3-flash", usage({"input_tokens": 10_000_000, "output_tokens": 1_000_000}), "14:00:00Z"),
     ]
     (slug / "sessB.jsonl").write_text("\n".join(b_lines) + "\n")
 

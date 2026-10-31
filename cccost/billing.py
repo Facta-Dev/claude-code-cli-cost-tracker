@@ -9,11 +9,17 @@ never hardcoded in any file.
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from pathlib import Path
 
 TOKEN_FIELDS = ("input", "output", "cache_read", "cache_write_5m", "cache_write_1h")
 
 SYNTHETIC = "<synthetic>"  # locally generated responses; not provider spend
+
+
+def in_off_peak_window(when: datetime) -> bool:
+    """Ollama Cloud's off-peak: weekends, and weekdays outside 12:00-18:00 UTC."""
+    return when.weekday() >= 5 or not (12 <= when.hour < 18)
 
 
 def usage_tokens(usage: dict) -> dict[str, int]:
@@ -84,7 +90,8 @@ class Prices:
                     return self.resolve(stripped)
         return model
 
-    def cost(self, model: str, tokens: dict[str, int]) -> float | None:
+    def cost(self, model: str, tokens: dict[str, int],
+             timestamp: str | None = None) -> float | None:
         """USD for one turn. None when the model is not on the price sheet."""
         if model == SYNTHETIC:
             return 0.0
@@ -92,9 +99,19 @@ class Prices:
         if rates is None:
             self.unknown.add(model)
             return None
-        # Off-peak is an Ollama Cloud concept (rows tagged off_peak); a
-        # first-party Claude row must not inherit the discount.
-        factor = (
-            self.off_peak_factor if self.off_peak and rates.get("off_peak") else 1.0
-        )
+        # Off-peak is an Ollama Cloud concept (rows tagged off_peak): a
+        # first-party Claude row must not inherit it, and the half rate
+        # applies PER TURN by timestamp — weekends and weekdays outside
+        # 12:00-18:00 UTC. Undated turns are treated as off-peak, so an
+        # unknown stays an understatement, never a spike.
+        factor = 1.0
+        if self.off_peak and rates.get("off_peak"):
+            when = None
+            if timestamp:
+                try:
+                    when = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
+                except ValueError:
+                    when = None
+            if when is None or in_off_peak_window(when):
+                factor = self.off_peak_factor
         return sum(tokens[f] * rates[f] * factor for f in TOKEN_FIELDS) / 1_000_000

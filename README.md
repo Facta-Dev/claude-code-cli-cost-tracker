@@ -1,5 +1,7 @@
 # claude-code-cli-cost-tracker
 
+[![ci](https://github.com/Facta-Dev/claude-code-cli-cost-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/Facta-Dev/claude-code-cli-cost-tracker/actions/workflows/ci.yml)
+
 **What does your agent work actually cost?** — Live, in your terminal, in
 dollars, while you work. This tracker bills every turn of your Claude Code
 sessions from the token usage Claude Code already writes to disk — whatever
@@ -65,8 +67,9 @@ which runs the tests and does it for you. The full manual is
 - **Subagent spend folds into the parent session** (`subagents/*.jsonl`),
   live and in reports.
 - **Off-peak: Ollama Cloud half-rate rows** (tagged `off_peak` in the sheet)
-  halve via `--off-peak` — a blanket half rate over the selection; first-party
-  Claude rows never inherit it.
+  halve via `--off-peak` **per turn by timestamp** — weekends, and weekdays
+  outside 12:00–18:00 UTC (undated turns stay off-peak: understatement, never
+  a spike). First-party Claude rows never inherit it.
 - **Prices move.** The sheet is a snapshot (as of 2026-10-30). Copy, edit,
   `--prices` — never inline rates into code.
 
@@ -82,6 +85,7 @@ cccost session --repo my-project          # one row per session
 cccost report --repo my-project           # full baseline + CSVs
 cccost daily --repo my-project --last 30  # window, not all history
 cccost daily --repo my-project --json     # machine-readable
+cccost models --repo my-project           # which model burns the budget
 ```
 
 ## Status line

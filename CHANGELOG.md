@@ -5,6 +5,10 @@ prices.json — price changes are sheet edits, not code releases.
 
 ## [Unreleased]
 
+- `cccost models`: per-model cost report (which model burns the budget)
+- `--off-peak` now bills per turn by timestamp — weekends and weekdays
+  outside 12:00–18:00 UTC; undated turns stay off-peak (understatement).
+  First-party Claude rows unaffected.
 - cccost reports CLI: `daily` / `weekly` / `monthly` / `session` / `report`,
   `--list-repos`, `--json`, `--last N`, gatekept by the `--repo` guardrail
 - `/cccost` slash command (`commands/cccost.md`)

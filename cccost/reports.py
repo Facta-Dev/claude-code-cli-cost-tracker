@@ -110,6 +110,43 @@ def render_session(rows: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def model_rows(turn_rows: list[dict]) -> list[dict]:
+    """One row per model that served at least one turn, cost-ordered."""
+    buckets: dict[str, dict] = {}
+    for turn in turn_rows:
+        model = turn.get("model") or "?"
+        b = buckets.setdefault(model, {"turns": 0, "cost_usd": 0.0, "input_tokens": 0,
+                                       "output_tokens": 0, "cache_read_tokens": 0})
+        b["turns"] += 1
+        b["cost_usd"] += float(turn.get("cost_usd") or 0.0)
+        b["input_tokens"] += int(turn.get("input_tokens") or 0)
+        b["output_tokens"] += int(turn.get("output_tokens") or 0)
+        b["cache_read_tokens"] += int(turn.get("cache_read_tokens") or 0)
+    rows = [
+        {**b, "model": model, "cost_usd": round(b["cost_usd"], 4)}
+        for model, b in buckets.items()
+    ]
+    rows.sort(key=lambda r: (-r["cost_usd"], r["model"]))
+    return rows
+
+
+def render_models(rows: list[dict]) -> str:
+    lines = [
+        f"  {'model':<24}{'turns':>6}{'input':>14}{'output':>12}"
+        f"{'cache-read':>14}   {'cost':<7}"
+    ]
+    for r in rows:
+        lines.append(
+            f"  {r['model'][:23]:<24}{r['turns']:>6}"
+            f"{r['input_tokens']:>14,}"
+            f"{r['output_tokens']:>12,}"
+            f"{r['cache_read_tokens']:>14,}"
+            f"   ${r['cost_usd']:<7.2f}"
+        )
+    lines.append(f"  {'TOTAL':<24}{sum(r['turns'] for r in rows):>6}{'':>40}   ${sum(r['cost_usd'] for r in rows):.2f}")
+    return "\n".join(lines)
+
+
 def emit(command: str, period_or_session_rows: list[dict], prices, want_json: bool) -> int:
     """The subcommand body: render the table or dump JSON."""
     if want_json:
@@ -121,11 +158,14 @@ def emit(command: str, period_or_session_rows: list[dict], prices, want_json: bo
         }, indent=2, default=str))
         return 0
     label = {"daily": "DAILY USAGE", "weekly": "WEEKLY USAGE",
-             "monthly": "MONTHLY USAGE", "session": "SESSION USAGE"}[command]
-    body = render_period(period_or_session_rows, command) if command in ("daily", "weekly", "monthly") else render_session(period_or_session_rows)
+             "monthly": "MONTHLY USAGE", "session": "SESSION USAGE",
+             "models": "MODEL USAGE"}[command]
+    body = render_period(period_or_session_rows, command) if command in ("daily", "weekly", "monthly") \
+        else render_models(period_or_session_rows) if command == "models" \
+        else render_session(period_or_session_rows)
     sys.stdout.write(
         f"\n  {label}  ·  {len(period_or_session_rows)} "
-        f"{'days' if command == 'daily' else 'weeks' if command == 'weekly' else 'months' if command == 'monthly' else 'sessions'}"
+        f"{'days' if command == 'daily' else 'weeks' if command == 'weekly' else 'months' if command == 'monthly' else 'models' if command == 'models' else 'sessions'}"
         f"  ·  priced against {prices.path.name} as of {prices.as_of}\n\n"
         + body + "\n"
     )

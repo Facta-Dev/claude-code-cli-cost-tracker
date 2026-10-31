@@ -68,8 +68,9 @@ installed elsewhere, edit `commands/cccost.md` accordingly.
 
 ## 5 · Prices
 
-`prices.json` is a date-stamped snapshot: Ollama Cloud (off-peak tagged rows,
-half rate with `--off-peak`, blanket over the selection) + first-party Claude
+`prices.json` is a date-stamped snapshot: Ollama Cloud (off-peak tagged rows
+halve with `--off-peak`, per turn by timestamp — weekends + weekdays outside
+12:00–18:00 UTC) + first-party Claude
 models with per-model cache rates. To reprice: copy the sheet, edit rates,
 pass `--prices` to any report; verify current rates at
 [ollama.com/pricing](https://ollama.com/pricing) and Anthropic's model table.

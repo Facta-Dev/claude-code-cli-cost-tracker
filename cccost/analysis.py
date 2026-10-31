@@ -52,7 +52,7 @@ def build(projects_dir: Path, repos: list[str] | None, prices: Prices):
 
         for index, turn in enumerate(turns, start=1):
             tok = turn["tokens"]
-            cost = prices.cost(turn["model"], tok)
+            cost = prices.cost(turn["model"], tok, turn["timestamp"])
             if cost is None:
                 unpriced += 1
                 cost = 0.0

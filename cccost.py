@@ -11,7 +11,8 @@ Every subcommand bills turns per its own model against prices.json
 --repo (repeatable) — the guardrail: transcripts mix personal and
 work-adjacent sessions, so inclusion is always explicit.
 
-    --off-peak   half rate on off_peak rows, blanket over the selection
+    --off-peak   half rate on off_peak rows, per turn by timestamp
+                 (weekends + weekdays outside 12:00-18:00 UTC)
     --last N     keep only turns within the last N days
     --json       machine-readable output
 
@@ -26,10 +27,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from cccost.analysis import build, full_report, list_repos, load_prices
-from cccost.reports import emit, session_report_rows, period_rows
+from cccost.reports import emit, model_rows, period_rows, session_report_rows
 
 PERIODS = ("daily", "weekly", "monthly")
-COMMANDS = PERIODS + ("session", "report")
+COMMANDS = PERIODS + ("session", "models", "report")
 REPO_GUARDRAIL = (
     "--repo is required. This is a guardrail, not an oversight: transcripts "
     "include work-adjacent sessions, so shipping the wrong sessions into a "
@@ -51,7 +52,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--projects-dir", type=Path, default=DEFAULT_PROJECTS_DIR)
     parser.add_argument("--prices", type=Path,
                         default=Path(__file__).resolve().parent / "prices.json")
-    parser.add_argument("--off-peak", action="store_true")
+    parser.add_argument("--off-peak", action="store_true",
+                        help="half rate on off_peak rows, per turn by UTC timestamp")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--last", type=float)
     parser.add_argument("--list-repos", action="store_true")
@@ -89,6 +91,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if command == "session":
         rows = session_report_rows(session_rows)
+    elif command == "models":
+        rows = model_rows(_filter_last(turn_rows, args.last))
     else:
         rows = period_rows(_filter_last(turn_rows, args.last), command)
     return emit(command, rows, prices, args.json)

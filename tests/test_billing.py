@@ -129,29 +129,31 @@ def test_analyzer_billing():
         sessions = read_csv(Path(out) / "sessions.csv")
         turns = read_csv(Path(out) / "turns.csv")
 
-        assert len(turns) == 7, "dupes and corrupt-usage lines must not bill"
+        assert len(turns) == 9, "dupes and corrupt-usage lines must not bill"
         a = session_row(sessions, "sessA")
         b = session_row(sessions, "sessB")
 
         # sessA: $1.40 (glm-5.3-flash w/ both TTLs) + $1.58 (glm-5.2) + $0 + $0
         assert float(a["cost_usd"]) == 2.98 and int(a["turns"]) == 4
-        # sessB: $0.59 (glm-5.3-flash) + $3.00 (claude-sonnet-5) + $0.75 (subagent)
-        assert float(b["cost_usd"]) == 4.34 and int(b["turns"]) == 3
+        # sessB: 0.59 (off-h) + 3.00 (claude) + 2.00 (off-h) + 2.00 (peak-h) + 0.75 (sub)
+        assert float(b["cost_usd"]) == 8.34 and int(b["turns"]) == 5
         assert int(b["sidechain_turns"]) == 1, "subagent must fold into parent"
         # cache hit rates on hand-computed splits
-        assert float(b["cache_hit_rate"]) == 0.5  # 8M read of 16M billed
+        assert float(b["cache_hit_rate"]) == 0.2222  # 8M read of 36M billed
         assert float(a["cache_hit_rate"]) == 0.9036  # 30M read of 33.2M billed
 
 
 def test_off_peak_discounts_only_ollama():
-    """--off-peak halves Ollama rows, never first-party Claude rows."""
+    """--off-peak halves Ollama rows per turn by timestamp window, and never
+    first-party Claude rows. Fixture: Friday 09:0x/09:10/09:15/09:30 UTC are
+    off-peak; the 14:00 UTC turn is inside Ollama's peak window."""
     with analyze("--off-peak") as (_proc, out):
         sessions = read_csv(Path(out) / "sessions.csv")
         a = session_row(sessions, "sessA")
         b = session_row(sessions, "sessB")
         assert float(a["cost_usd"]) == 1.49  # 2.98 / 2 — all-Ollama session
-        # 4.34 -> 0.295 + 0.375 + 3.00: the claude-sonnet-5 turn is untouched
-        assert float(b["cost_usd"]) == 3.67
+        # 0.59->0.295 | claude 3.00 stays | 2.00->1.00 | 14:00 stays 2.00 | 0.75->0.375
+        assert float(b["cost_usd"]) == 6.67
 
 
 def test_unpriced_models_named():
@@ -177,21 +179,41 @@ def test_cccost_period_reports():
     for command in ("daily", "weekly", "monthly"):
         proc = cccost(command, "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
         assert proc.returncode == 0, proc.stderr
-        assert "$7.32" in proc.stdout, f"{command} must bill 2.98 + 4.34"
+        assert "$11.32" in proc.stdout, f"{command} must bill 2.98 + 8.34"
 
 
 def test_cccost_session_json_and_guardrail():
     proc = cccost("session", "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
     assert proc.returncode == 0 and "sessA" in proc.stdout and "cost-lab" in proc.stdout
-    assert "$2.98" in proc.stdout and "$4.34" in proc.stdout
+    assert "$2.98" in proc.stdout and "$8.34" in proc.stdout
     with tempfile.TemporaryDirectory() as td:
         proc = cccost("daily", "--json", "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
         data = json.loads(proc.stdout)
-        assert data["rows"][0]["key"] == "2026-10-30" and data["total_cost_usd"] == 7.32
+        assert data["rows"][0]["key"] == "2026-10-30" and data["total_cost_usd"] == 11.32
     proc = cccost("daily", "--projects-dir", str(PROJECTS))
     assert proc.returncode != 0, "period reports must keep the --repo guardrail"
     proc = cccost("--list-repos", "--projects-dir", str(PROJECTS))
     assert proc.returncode == 0 and REPO_NAME in proc.stdout and "$" not in proc.stdout
+
+
+def test_cccost_models_report():
+    """Which model burns the budget: cost-ordered per-model rows."""
+    proc = cccost("models", "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
+    assert proc.returncode == 0, proc.stderr
+    assert "glm-5.3-flash" in proc.stdout and "$6.74" in proc.stdout  # 1.40+0.59+2+2+0.75
+    assert "claude-sonnet-5" in proc.stdout and "$3.00" in proc.stdout
+    assert "glm-5.2" in proc.stdout and "$1.58" in proc.stdout
+    assert "unknown-model-x" in proc.stdout and "$0.00" in proc.stdout  # named, $0
+
+
+def test_cccost_report_and_last():
+    """The report subcommand (shared flow) and the --last window filter."""
+    with tempfile.TemporaryDirectory() as td:
+        proc = cccost("report", "--out-dir", td, "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
+        assert proc.returncode == 0 and "BASELINE" in proc.stdout and "$11.32" in proc.stdout
+        assert Path(td, "sessions.csv").exists() and Path(td, "turns.csv").exists()
+    proc = cccost("daily", "--last", "365", "--projects-dir", str(PROJECTS), "--repo", REPO_NAME)
+    assert "$11.32" in proc.stdout, "--last 365 keeps the whole fixture"
 
 
 def statusline(payload: dict, cache_dir: str) -> str:

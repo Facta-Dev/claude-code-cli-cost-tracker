@@ -22,8 +22,8 @@ include work-adjacent sessions; only explicitly named repos are ever read into
 the output. --list-repos prints repo names and session counts only — no
 tokens, no costs, no content.
 
---off-peak bills Ollama Cloud models at half rate (their off-peak window:
-weekends plus weekdays outside 12:00-18:00 UTC). Rows in prices.json without
+--off-peak bills Ollama Cloud models at half rate per turn by timestamp:
+weekends, and weekdays outside 12:00-18:00 UTC. Rows in prices.json without
 the off_peak flag — first-party Claude models — are never discounted.
 
 Stdlib only. No network. Nothing leaves the machine.
@@ -65,8 +65,8 @@ def main(argv: list[str] | None = None) -> int:
         "--off-peak",
         action="store_true",
         help="Bill Ollama Cloud rows (off_peak: true in prices.json) at half "
-        "the listed rate — a blanket half rate over the entire selection, no "
-        "time-window logic. First-party Claude rows are never discounted.",
+        "rate per turn by timestamp — weekends and weekdays outside "
+        "12:00-18:00 UTC. First-party Claude rows are never discounted.",
     )
     parser.add_argument(
         "--list-repos",
