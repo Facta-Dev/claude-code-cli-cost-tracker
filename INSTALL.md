@@ -63,6 +63,25 @@ CLI (any subcommand works: `daily`/`weekly`/`monthly`/`session`/`models`/
 installed path — if you installed elsewhere, edit `commands/cccost.md`
 accordingly.
 
+## 3b · iTerm2 session status: state + cost per session
+
+On macOS/iTerm2, Claude Code's session events can drive iTerm2's own status
+indicator (the state dot: working / waiting / done / error / idle) — that is
+the `~/.config/iterm2/cc-status` utility iTerm2 ships; your hooks call it.
+
+The repo's `hooks/cc-status-with-cost.sh` wraps it: it feeds the hook event
+to `cc-status` unchanged, then reads the tracker's state cache and sets the
+status **detail** to the session's live cost (`💰 $X.XX`), targeted at the
+exact session via `$ITERM_SESSION_ID`. The wrapper is event-agnostic — one
+script serves every event.
+
+To wire it: in `~/.claude/settings.json`, replace each hook command that
+calls `~/.config/iterm2/cc-status` with `~/.claude/hooks/cc-status-with-cost.sh`
+for: `Notification`, `PermissionRequest`, `SessionStart`, `SessionEnd`,
+`Stop`, `StopFailure`, `SubagentStop`, `UserPromptSubmit`. **Leave
+`PreToolUse` on the raw binary** — it fires on every tool call and the
+wrapper's process fan-out would tax the hot path.
+
 ## 4 · Environment overrides
 
 | Variable | Default | Meaning |

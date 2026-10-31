@@ -23,9 +23,19 @@ replace — and read INSTALL.md §2 for the details):
 
 The next Claude Code session shows the live meter; /cccost works, too.
 
-For the iTerm2 session-status detail (cost next to the state dot), point
-the Stop hook at the wrapper:
+For the iTerm2 session-status detail (cost next to the state dot) on EVERY
+session event, replace each hook that calls ~/.config/iterm2/cc-status with
+the wrapper — except PreToolUse (per-tool-call hot path; keep the raw binary
+there). The wrapper pipes cc-status through unchanged and adds 💰 $cost:
 
-    "Stop": [ { "hooks": [ { "type": "command",
-      "command": "/Users/YOU/.claude/hooks/cc-status-with-cost.sh" } ] } ]
+    "Notification":      [ { "hooks": [ { "type": "command",
+      "command": "~/.claude/hooks/cc-status-with-cost.sh" } ] } ],
+    "PermissionRequest": [ { "hooks": [ { "type": "command",
+      "command": "~/.claude/hooks/cc-status-with-cost.sh" } ] } ],
+    "SessionStart":      [ ... same ... ],
+    "SessionEnd":        [ ... same ... ],
+    "Stop":              [ ... same ... ],
+    "StopFailure":       [ ... same ... ],
+    "SubagentStop":      [ ... same ... ],
+    "UserPromptSubmit":  [ ... same ... ]
 EOF
