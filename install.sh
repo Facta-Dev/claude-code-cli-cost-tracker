@@ -7,6 +7,7 @@ cd "$(dirname "$0")"
 python3 tests/test_billing.py
 mkdir -p ~/.claude/commands
 cp -r cccost statusline.py cccost.py prices.json ~/.claude/
+rm -rf ~/.claude/cccost/__pycache__   # bytecode cruft doesn't ship
 cp commands/cccost.md ~/.claude/commands/
 
 cat <<EOF

@@ -19,6 +19,10 @@ import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 
+if sys.version_info < (3, 10):
+    sys.exit(f"Python 3.10+ required (found {sys.version.split()[0]}): "
+             f"this repo uses union type annotations in signatures")
+
 ROOT = Path(__file__).resolve().parent.parent
 PY = sys.executable
 PROJECTS = ROOT / "tests" / "fixtures" / "projects"
