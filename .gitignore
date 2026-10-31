@@ -3,4 +3,4 @@ __pycache__/
 .pytest_cache/
 tests/fixtures/projects/
 *.csv
-.DS_Store
+.DS_Store.terrain/
