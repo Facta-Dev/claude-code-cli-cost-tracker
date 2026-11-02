@@ -54,10 +54,13 @@ cd claude-code-cli-cost-tracker
 powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1
 ```
 
-Both run the test suite first, install into `~/.claude`, and print the exact
-`statusLine` + hooks JSON to merge into your settings. The per-session status
+Both run the test suite first, install into `~/.claude` (or `$CLAUDE_CONFIG_DIR`
+when set — multi-profile setups), and print the exact `statusLine` + hooks JSON
+to merge into your settings. The per-session status
 (state dot + in-flight processes + 💰 cost) works natively on iTerm2 (macOS),
-fires `notify-send` on Linux and toasts on Windows — see
+fires `notify-send` on Linux — optionally also in the terminal tab title, with a
+click-to-jump panel of all your sessions in WezTerm, see
+[INSTALL.md](INSTALL.md) §3d — and toasts on Windows — see
 [INSTALL.md](INSTALL.md) §3c. Details: [QUICKSTART.md](QUICKSTART.md).
 
 ## Project
@@ -147,6 +150,14 @@ And the per-session state side — iTerm2's Session Status with several consoles
 each showing its state (`done` / `working`) and its in-flight process detail (`⚙ bash: …`):
 
 ![session status panel](docs/images/iterm-session-panel.png)
+
+On Linux there is no such panel in the terminal, so the repo ships one. The
+same hook keeps a live record per session; with `CC_TAB_TITLE=1` it also puts
+`🟡 my-repo · working · $2.31` in every tab title, and
+`hooks/linux/session_panel.py` lists **every** running session (state, cost,
+tool in flight, age). Inside WezTerm a click on a row jumps to that session —
+`hooks/linux/ccterm` lays out `claude` plus the panel in every tab. Setup:
+[INSTALL.md](INSTALL.md) §3d.
 
 ## Guardrail
 

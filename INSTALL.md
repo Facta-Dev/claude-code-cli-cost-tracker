@@ -88,6 +88,11 @@ wrapper's process fan-out would tax the hot path.
 | --- | --- | --- |
 | `CC_COST_PRICES` | `prices.json` next to `statusline.py` | sheet for the live meter; the CLI takes `--prices` |
 | `CC_COST_CACHE_DIR` | `~/.cache/claude-cost-tracker/` | per-session billing state for the status line (byte offsets + session cost). Safe to wipe anytime — a lost state file just re-bills a session's transcript from byte 0 (cost, not cumulative identity, is recomputed) |
+| `CLAUDE_CONFIG_DIR` | `~/.claude` | Claude Code config dir (multi-profile setups). `cccost` reads transcripts from `$CLAUDE_CONFIG_DIR/projects` and `install.sh` installs into it; `--projects-dir` still overrides |
+| `CC_SESSIONS_DIR` | `<CC_COST_CACHE_DIR>/sessions` | Linux: live per-session records written by the hook and read by the panel (§3d) |
+| `CC_TAB_TITLE` | unset | Linux: `1` makes the hook set the terminal tab title (§3d) |
+| `CCCOST_CLAUDE_CMD` / `CCCOST_PANEL_COLS` | `claude` / `42` | Linux WezTerm layout: command typed into a new tab / panel width in cells |
+| `WEZTERM_BIN_DIR` | unset | folder holding `wezterm-gui` when it is not on `PATH` (e.g. an extracted AppImage) |
 
 ## 5 · Prices
 
@@ -133,9 +138,55 @@ One hook serves every event on every OS:
 |---|---|---|
 | macOS + iTerm2 | native state dot + detail | `python3 $HOME/.claude/hooks/session_status.py` |
 | macOS, no iTerm2 | osascript notification | same |
-| Linux | notify-send on waiting/done | same |
+| Linux | notify-send on waiting/done; optional tab title + all-sessions panel (§3d) | same |
 | Windows | toast (NotifyIcon balloon) | `powershell -NoProfile -ExecutionPolicy Bypass -File %HOME%\.claude\hooks\session_status.py.ps1` -> `...session_status.py` runs the ps1 |
 
 On Windows wire BOTH: the statusLine block and the hooks block from
 install.ps1s output. The registry (`.procs.json`) uses the same cache dir
 as the tracker on every platform.
+
+## 3d · Linux: state in the tab title + a panel of all sessions
+
+Linux terminals have no native per-session status (iTerm2's is macOS-only), so
+the unified hook (§3c) offers two additions, and `hooks/linux/` ships the panel.
+`install.sh` copies `hooks/linux/` into `<config dir>/hooks/linux/` on Linux.
+
+**Live record per session — always on.** Every hook event updates
+`$CC_SESSIONS_DIR/<session_id>.json` (default
+`~/.cache/claude-cost-tracker/sessions/`): state, in-flight tools, last prompt,
+cost, pid and tty. `SessionEnd` deletes it. Nothing leaves the machine.
+
+**Tab title — opt-in.** Put `CC_TAB_TITLE=1` in front of the hook command and
+stop Claude Code from rewriting the title itself:
+
+```json
+"env": { "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "1" },
+"hooks": {
+  "Stop": [ { "hooks": [ { "type": "command",
+    "command": "CC_TAB_TITLE=1 python3 $HOME/.claude/hooks/session_status.py" } ] } ]
+}
+```
+
+Use the same command on every event, as in §3c (`PreToolUse` only feeds the
+panel's in-flight detail and never repaints the title). Each tab then reads
+`🟡 my-repo · working · $2.31`: 🟡 working · 🔴 waiting / permission ·
+🟢 done · ⛔ error · ⚪ new. The title is an OSC 0 sequence written to the
+session's own pty; tested in WezTerm.
+
+**Panel with click-to-jump (WezTerm).** Install
+[WezTerm](https://wezterm.org/install/linux.html), then:
+
+```bash
+~/.claude/hooks/linux/ccterm        # from the clone: hooks/linux/ccterm
+```
+
+Every tab is `claude` on the left and the panel on the right: one row per
+running session (state, cost, tool in flight, age); the row marked ▶ is this
+tab's own; **click a row to jump to that session**. `Ctrl+Shift+T` opens a new
+Claude tab with its panel, `Ctrl+Shift+Y` a plain tab. `CCCOST_CLAUDE_CMD`
+changes what a new tab types (default `claude`; e.g. an alias for another
+profile). Jumping works between the panes and tabs of WezTerm; a session that
+runs in another terminal is listed but cannot be jumped to, and under Wayland
+WezTerm is not asked to raise other OS windows — keep your sessions in one
+WezTerm window. `python3 hooks/linux/session_panel.py` also runs standalone,
+anywhere, as a read-only panel.

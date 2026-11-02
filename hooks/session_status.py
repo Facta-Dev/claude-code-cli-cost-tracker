@@ -9,7 +9,10 @@ One process per event. It:
   3. emits the status DETAIL per platform:
        darwin + iTerm2  -> it2 set-status --detail on that exact session
        darwin no iTerm  -> osascript notification (best-effort)
-       linux            -> notify-send notification on waiting/done
+       linux            -> notify-send notification on waiting/done, plus a live
+                           per-session record (CC_SESSIONS_DIR, default
+                           <cache>/sessions) for hooks/linux/session_panel.py,
+                           plus the terminal TAB TITLE when CC_TAB_TITLE=1
        windows          -> powershell -File session-status.ps1 (toast)
   with cost from the cccost state cache:  ⚙ Bash: npm test · 🤖 Explore · 💰 $3.09
 
@@ -27,12 +30,14 @@ import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 CACHE_DIR = os.environ.get("CC_COST_CACHE_DIR") or os.path.join(
     os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache"),
     "claude-cost-tracker",
 )
+SESSIONS_DIR = os.environ.get("CC_SESSIONS_DIR") or os.path.join(CACHE_DIR, "sessions")
 HERE = str(Path(__file__).resolve().parent)
 IT2 = "/Applications/iTerm.app/Contents/Resources/utilities/it2"
 CC_STATUS = os.path.join(os.path.expanduser("~/.config/iterm2"), "cc-status")
@@ -112,6 +117,144 @@ def build_detail(event: str, payload: dict, entries: list[dict], cost: str | Non
     if cost:
         parts.append(f"💰 {cost}")
     return " · ".join(parts)[:TRUNC_DETAIL]
+
+
+# ---- linux: live session record (panel) + terminal tab title -----------------
+
+# event -> (panel state, label, tab-title emoji)
+LINUX_STATE = {
+    "SessionStart":      ("new",     "new",        "⚪"),
+    "UserPromptSubmit":  ("working", "working",    "🟡"),
+    "PreToolUse":        ("working", "working",    "🟡"),
+    "PostToolUse":       ("working", "working",    "🟡"),
+    "Notification":      ("waiting", "waiting",    "🔴"),
+    "PermissionRequest": ("waiting", "permission", "🔴"),
+    "Stop":              ("done",    "done",       "🟢"),
+    "StopFailure":       ("error",   "error",      "⛔"),
+}
+
+
+def clip(value: object, limit: int) -> str:
+    """One line, no control characters (payload text is untrusted: it ends up
+    in the record, the panel and the terminal title), at most `limit` chars."""
+    return re.sub(r"[\x00-\x1f\x7f\s]+", " ", str(value or "")).strip()[:limit]
+
+
+def repo_name(payload: dict) -> str:
+    return clip(Path(str(payload.get("cwd") or os.getcwd())).name, 40) or "claude"
+
+
+def session_cost_value(sid: str) -> float | None:
+    try:
+        return float(json.loads((Path(CACHE_DIR) / f"{sid}.json").read_text()).get("cost") or 0)
+    except Exception:
+        return None
+
+
+def find_tty() -> tuple[str | None, int | None]:
+    """Nearest ancestor whose stdin is a pty -> (/dev/pts/N, pid): the claude CLI
+    of the terminal tab this hook belongs to."""
+    pid = os.getpid()
+    for _ in range(15):
+        try:
+            link = os.readlink(f"/proc/{pid}/fd/0")
+            if link.startswith("/dev/pts/"):
+                return link, pid
+        except OSError:
+            pass
+        try:
+            stat = Path(f"/proc/{pid}/stat").read_text()
+            pid = int(stat.rsplit(")", 1)[1].split()[1])  # ppid
+        except Exception:
+            return None, None
+        if pid <= 1:
+            return None, None
+    return None, None
+
+
+def update_session_record(event: str, payload: dict, sid: str, entries: list,
+                          cost: float | None, tty: str | None, pid: int | None) -> dict | None:
+    """Create/refresh the per-session record the panel reads; SessionEnd deletes it.
+    Without a tty/pid there is nothing a panel could match, so nothing is written."""
+    path = Path(SESSIONS_DIR) / f"{sid}.json"
+    if event == "SessionEnd":
+        try:
+            path.unlink()
+        except OSError:
+            pass
+        return None
+    if event not in LINUX_STATE or not (tty and pid):
+        return None
+    state, label, _emoji = LINUX_STATE[event]
+    try:
+        rec = json.loads(path.read_text())
+    except Exception:
+        rec = {}
+    now = time.time()
+    rec.update({"session_id": sid, "repo": repo_name(payload), "cwd": clip(payload.get("cwd"), 200),
+                "state": state, "label": label, "pid": pid, "tty": tty, "updated": now})
+    rec.setdefault("started", now)
+    if cost is not None:
+        rec["cost"] = cost
+    if event == "UserPromptSubmit":
+        rec["task"], rec["detail"] = clip(payload.get("prompt"), 80), ""
+    elif event == "Notification":
+        rec["detail"] = clip(payload.get("message"), 90)
+    else:
+        rec["detail"] = clip(" · ".join(str(e) for e in entries), 110)  # in-flight tools/subagents
+    try:
+        os.makedirs(SESSIONS_DIR, exist_ok=True)
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(rec, ensure_ascii=False))
+        os.replace(tmp, path)
+    except OSError:
+        return None
+    return rec
+
+
+def tab_title(event: str, payload: dict, cost: float | None) -> str | None:
+    """'🟡 my-repo · working · $2.31'; SessionEnd restores a neutral title."""
+    repo = repo_name(payload)
+    if event == "SessionEnd":
+        return repo
+    if event not in LINUX_STATE:
+        return None
+    _state, label, emoji = LINUX_STATE[event]
+    parts = [f"{emoji} {repo}", label]
+    if cost is not None:
+        parts.append(f"${cost:.2f}")
+    return " · ".join(parts)
+
+
+def write_tab_title(tty: str, title: str) -> bool:
+    """OSC 0 to the session's own pty (VTE/WezTerm/kitty/xterm...); never blocks."""
+    try:
+        fd = os.open(tty, os.O_WRONLY | os.O_NOCTTY)
+        try:
+            os.write(fd, f"\033]0;{title}\007".encode())
+        finally:
+            os.close(fd)
+        return True
+    except OSError:
+        return False
+
+
+def linux_session_status(event: str, payload: dict, sid: str, entries: list) -> None:
+    """Panel record always; tab title only when CC_TAB_TITLE=1 (pair it with
+    CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1 so Claude Code does not overwrite it)."""
+    try:
+        if not sid:
+            return
+        tty, pid = find_tty()
+        cost = session_cost_value(sid)
+        update_session_record(event, payload, sid, entries, cost, tty, pid)
+        # PreToolUse only feeds the panel's in-flight detail: no title repaint per tool
+        if os.environ.get("CC_TAB_TITLE") == "1" and tty and event != "PreToolUse":
+            title = tab_title(event, payload, cost)
+            if title is not None:
+                write_tab_title(tty, title)
+    except Exception:
+        pass
 
 
 # ---- platform backends (each returns True when it emitted something) -------
@@ -202,6 +345,7 @@ def main() -> int:
     elif sys.platform == "win32":
         backend_windows(detail)
     else:
+        linux_session_status(event, payload, sid, entries)
         backend_linux(raw, event, detail)
     return 0
 

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Launch WezTerm with the Claude Code session-panel layout (wezterm.lua next to this file).
+# Each tab = `claude` + a live panel of all sessions; click a row to jump to it.
+#   Ctrl+Shift+T  new Claude tab with panel     Ctrl+Shift+Y  plain shell tab
+# WezTerm not on PATH (e.g. an extracted AppImage)? Set WEZTERM_BIN_DIR to its bin folder.
+set -euo pipefail
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export WEZTERM_CONFIG_FILE="$here/wezterm.lua"
+if [ -n "${WEZTERM_BIN_DIR:-}" ]; then PATH="$WEZTERM_BIN_DIR:$PATH"; fi
+if ! command -v wezterm-gui >/dev/null 2>&1; then
+  echo "ccterm: wezterm-gui not found. Install WezTerm (https://wezterm.org/install/linux.html)" >&2
+  echo "        or set WEZTERM_BIN_DIR to the folder that contains it." >&2
+  exit 1
+fi
+exec wezterm-gui start "$@"
