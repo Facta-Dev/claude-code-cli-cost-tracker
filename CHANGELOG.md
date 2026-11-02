@@ -5,6 +5,16 @@ prices.json — price changes are sheet edits, not code releases.
 
 ## [Unreleased]
 
+- Linux per-session status: the unified hook keeps a live record per session
+  (`CC_SESSIONS_DIR`) and, with `CC_TAB_TITLE=1`, sets the terminal tab title
+  (`🟡 my-repo · working · $2.31`); `hooks/linux/session_panel.py` lists every
+  running session and, inside WezTerm, jumps to the clicked one;
+  `hooks/linux/wezterm.lua` + `ccterm` give every tab `claude` + the panel.
+  `install.sh` copies `hooks/linux/` on Linux. See INSTALL §3d.
+- `CLAUDE_CONFIG_DIR` is honored: `cccost` reads `$CLAUDE_CONFIG_DIR/projects`
+  by default and `install.sh` installs into it (default `~/.claude` unchanged).
+- Fix: a transcript symlink whose target no longer exists (or a directory named
+  `*.jsonl`) no longer crashes `--list-repos` and every report.
 - Claude fast mode per turn: usage speed exactly "fast" on a claude- model
   bills the `-fast` sheet row (opus-5-5/5/4-8); without one, base rates +
   a report note (fast_fallback). Ollama's numeric speed never counts.
