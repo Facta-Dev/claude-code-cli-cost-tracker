@@ -225,6 +225,38 @@ def test_session_status_registry():
     feed({"hook_event_name": "Stop", "session_id": sids})
     assert _json.loads(regfile.read_text()) == []
 
+
+def test_default_projects_dir_follows_claude_config_dir():
+    """With no --projects-dir the CLI reads $CLAUDE_CONFIG_DIR/projects (multi-profile
+    setups), else ~/.claude/projects; a dangling transcript symlink does not crash it."""
+    import os as _os
+    if not SLUG.exists():
+        make_fixture()
+    with tempfile.TemporaryDirectory() as td:
+        home = Path(td) / "home"
+        cfg = Path(td) / "other-profile"
+        for base in (home / ".claude", cfg):
+            proj = base / "projects" / SLUG.name
+            proj.mkdir(parents=True)
+            for src in SLUG.glob("*.jsonl"):
+                _os.symlink(src, proj / src.name)
+        _os.symlink(Path(td) / "gone.jsonl", cfg / "projects" / SLUG.name / "dead.jsonl")
+        # explicit profile wins, and survives the dangling link
+        proc = run(ROOT / "cccost.py", "--list-repos",
+                   env={"HOME": str(home), "CLAUDE_CONFIG_DIR": str(cfg)})
+        assert proc.returncode == 0, proc.stderr
+        assert REPO_NAME in proc.stdout, proc.stdout
+        # no env var: falls back to ~/.claude
+        proc = run(ROOT / "cccost.py", "--list-repos", env={"HOME": str(home)})
+        assert proc.returncode == 0 and REPO_NAME in proc.stdout, proc.stdout
+        # env var pointing at an empty profile: nothing from ~/.claude leaks in
+        empty = Path(td) / "empty"
+        empty.mkdir()
+        proc = run(ROOT / "cccost.py", "--list-repos",
+                   env={"HOME": str(home), "CLAUDE_CONFIG_DIR": str(empty)})
+        assert proc.returncode == 0 and REPO_NAME not in proc.stdout, proc.stdout
+
+
 def main() -> int:
     failures = 0
     for name, fn in sorted(globals().items()):

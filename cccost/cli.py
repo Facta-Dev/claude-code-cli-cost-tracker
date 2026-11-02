@@ -25,6 +25,7 @@ Stdlib only. No network. Nothing leaves the machine.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -40,7 +41,9 @@ REPO_GUARDRAIL = (
     "include work-adjacent sessions, so shipping the wrong sessions into a "
     "report takes a deliberate act."
 )
-DEFAULT_PROJECTS_DIR = Path.home() / ".claude" / "projects"
+# Claude Code keeps transcripts under its config dir: $CLAUDE_CONFIG_DIR when set
+# (multi-profile setups), else ~/.claude.
+DEFAULT_PROJECTS_DIR = Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude") / "projects"
 
 
 def main(argv: list[str] | None = None) -> int:
