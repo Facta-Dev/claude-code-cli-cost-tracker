@@ -111,6 +111,8 @@ def discover(projects_dir: Path) -> dict[tuple[str, str], list[Path]]:
     """
     sessions: dict[tuple[str, str], list[Path]] = defaultdict(list)
     for path in sorted(projects_dir.rglob("*.jsonl")):
+        if not path.is_file():  # dangling symlink (moved/removed target) or a dir named *.jsonl
+            continue
         rel = path.relative_to(projects_dir)
         if len(rel.parts) < 2:  # a bare *.jsonl directly under projects/ is no session
             continue

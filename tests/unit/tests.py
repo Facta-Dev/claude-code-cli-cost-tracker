@@ -89,6 +89,23 @@ def test_haiku_tier_boundary():
     assert prices.cost("claude-sonnet-5", usage_tokens({"input_tokens": 500_000})) == 1.00
 
 
+def test_discover_skips_dangling_symlinks():
+    """A transcript symlink whose target is gone must not crash discovery
+    (sessions can be symlinked between Claude config dirs and later removed)."""
+    import os
+    import tempfile
+    from pathlib import Path
+    from cccost.transcript import discover
+    with tempfile.TemporaryDirectory() as td:
+        proj = Path(td) / "-Users-demo-repos-lab"
+        proj.mkdir()
+        (proj / "good.jsonl").write_text("{}\n")
+        os.symlink(Path(td) / "nowhere.jsonl", proj / "dead.jsonl")   # dangling
+        (proj / "adir.jsonl").mkdir()                                 # dir named *.jsonl
+        found = discover(Path(td))
+        assert list(found) == [("-Users-demo-repos-lab", "good")], list(found)
+
+
 def test_off_peak_window_semantics():
     """The UTC window: weekends all day; weekdays outside 12:00-18:00 UTC."""
     from cccost.billing import in_off_peak_window
