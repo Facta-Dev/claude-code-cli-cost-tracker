@@ -160,6 +160,110 @@ def test_linux_tab_title_reaches_the_pty():
         assert hook.write_tab_title("/dev/pts/does-not-exist", "x") is False
 
 
+def _load_panel(sessions_dir: str):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "session_panel_under_test", ROOT / "hooks" / "linux" / "session_panel.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    mod.SESSIONS_DIR = Path(sessions_dir)
+    return mod
+
+
+def test_session_panel_rows_follow_live_processes():
+    """Rows = real claude processes: dead/reused-pid records are dropped, sessions
+    without a record show as 'no hook', waiting sorts first."""
+    import time
+    with tempfile.TemporaryDirectory() as td:
+        panel = _load_panel(td)
+        now = time.time()
+        panel.claude_procs = lambda: {
+            101: {"tty": "/dev/pts/1", "cwd": "/w/alpha"},
+            102: {"tty": "/dev/pts/2", "cwd": "/w/beta"},
+            103: {"tty": "/dev/pts/3", "cwd": "/w/gamma"},   # pid reused: record says pts/9
+            104: {"tty": "/dev/pts/4", "cwd": "/w/delta"},   # no record yet
+        }
+        def put(sid, **rec):
+            (Path(td) / f"{sid}.json").write_text(json.dumps(rec))
+        put("a", pid=101, tty="/dev/pts/1", repo="alpha", state="working", updated=now, cost=1.5)
+        put("b", pid=102, tty="/dev/pts/2", repo="beta", state="waiting", label="permission", updated=now)
+        put("dead", pid=999, tty="/dev/pts/8", repo="dead", state="done", updated=now)
+        put("reused", pid=103, tty="/dev/pts/9", repo="old", state="done", updated=now)
+        rows = panel.load_rows()
+        assert [(r["repo"], r["state"]) for r in rows] == [
+            ("beta", "waiting"), ("alpha", "working"), ("gamma", "nohook"), ("delta", "nohook")
+        ], rows
+        assert not (Path(td) / "dead.json").exists() and not (Path(td) / "reused.json").exists()
+
+
+def test_session_panel_render():
+    """One block per session: ▶ marks this tab's, cost/state on the row, stale 'working'
+    flagged, untrusted text sanitized, nothing wider than the pane."""
+    import time
+    with tempfile.TemporaryDirectory() as td:
+        panel = _load_panel(td)
+        now = time.time()
+        rows = [
+            {"tty": "/dev/pts/1", "repo": "alpha", "state": "working", "updated": now, "cost": 1.5,
+             "detail": "⚙ bash: \x1b[31mpytest\x1b[0m -x"},
+            {"tty": "/dev/pts/2", "repo": "beta", "state": "waiting", "label": "permission", "updated": now},
+            {"tty": "/dev/pts/3", "repo": "old-job", "state": "working", "updated": now - 3600},
+        ]
+        lines = panel.build(rows, 40, {"/dev/pts/1"})
+        text = [t for t, *_ in lines]
+        assert text[0].startswith("Claude Code · 3 session(s)")
+        row_alpha = next(t for t in text if "alpha" in t)
+        assert row_alpha.startswith("▶ alpha") and "working" in row_alpha and row_alpha.endswith("$1.50")
+        assert next(t for t in text if "beta" in t).startswith("● beta")
+        assert "permission" in next(t for t in text if "beta" in t)
+        assert "working?" in next(t for t in text if "old-job" in t), "stale working is flagged"
+        assert not any("\x1b" in t for t in text), "control characters never reach the screen"
+        assert max(len(t) for t in text) <= 39
+        idx = {i for *_rest, i in lines if i is not None}
+        assert idx == {0, 1, 2}, "every row block is clickable"
+
+
+def test_session_panel_jump_uses_the_wezterm_cli():
+    """Click -> pane whose tty matches -> `wezterm cli activate-pane`; honest messages
+    outside WezTerm or for a session that lives in another terminal."""
+    import os
+    import stat
+    if sys.platform == "win32":
+        return
+    with tempfile.TemporaryDirectory() as td:
+        log = Path(td) / "calls.log"
+        fake = Path(td) / "wezterm"
+        fake.write_text(
+            "#!/bin/sh\n"
+            'echo "$@" >> "$FAKE_WEZTERM_LOG"\n'
+            'if [ "$1" = cli ] && [ "$2" = list ]; then\n'
+            "  echo '[{\"tab_id\":5,\"pane_id\":11,\"tty_name\":\"/dev/pts/1\"},"
+            "{\"tab_id\":5,\"pane_id\":12,\"tty_name\":\"/dev/pts/7\"},"
+            "{\"tab_id\":6,\"pane_id\":13,\"tty_name\":\"/dev/pts/2\"}]'\n"
+            "fi\n")
+        fake.chmod(fake.stat().st_mode | stat.S_IEXEC)
+        panel = _load_panel(td)
+        keys = ("WEZTERM_EXECUTABLE_DIR", "WEZTERM_UNIX_SOCKET", "WEZTERM_PANE", "FAKE_WEZTERM_LOG")
+        saved = {k: os.environ.get(k) for k in keys}
+        try:
+            os.environ.update({"WEZTERM_EXECUTABLE_DIR": td, "WEZTERM_UNIX_SOCKET": "x",
+                               "WEZTERM_PANE": "12", "FAKE_WEZTERM_LOG": str(log)})
+            pmap, own_tab = panel.pane_map()
+            assert own_tab == 5 and set(pmap) == {"/dev/pts/1", "/dev/pts/7", "/dev/pts/2"}
+            assert panel.goto({"repo": "beta", "tty": "/dev/pts/2"}, pmap) == "→ beta"
+            assert "cli activate-pane --pane-id 13" in log.read_text()
+            assert "not in WezTerm" in panel.goto({"repo": "elsewhere", "tty": "/dev/pts/5"}, pmap)
+            assert panel.goto({"repo": "x", "tty": "/dev/pts/2"}, None) == "not in WezTerm: cannot jump"
+            os.environ.pop("WEZTERM_UNIX_SOCKET")
+            assert panel.pane_map() == (None, None), "outside WezTerm the panel is read-only"
+        finally:
+            for k, v in saved.items():
+                if v is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = v
+
+
 def main() -> int:
     failures = 0
     for name, fn in sorted(globals().items()):

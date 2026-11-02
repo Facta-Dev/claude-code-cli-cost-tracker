@@ -20,6 +20,10 @@ else
   cp commands/cccost.md "$CLAUDE_DIR/commands/"
 fi
 cp hooks/session_status.py hooks/session-status.ps1 "$CLAUDE_DIR/hooks/"
+if [ "$(uname -s)" = "Linux" ]; then
+  mkdir -p "$CLAUDE_DIR/hooks/linux"
+  cp hooks/linux/session_panel.py hooks/linux/wezterm.lua hooks/linux/ccterm "$CLAUDE_DIR/hooks/linux/"
+fi
 
 cat <<EOF
 
@@ -49,3 +53,13 @@ dot + detail (osascript if iTerm2 is closed), Linux fires notify-send on
 waiting/done, Windows toasts (session-status.ps1). A new session shows the
 live meter; /cccost reports.
 EOF
+
+if [ "$(uname -s)" = "Linux" ]; then
+cat <<EOF
+
+Linux, optional — per-session state inside the terminal (INSTALL.md 3d):
+  * tab title:  add CC_TAB_TITLE=1 to the hook command and set
+                CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1 in settings.json "env"
+  * panel of all sessions, click to jump (WezTerm):  $CLAUDE_DIR/hooks/linux/ccterm
+EOF
+fi
