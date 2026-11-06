@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Terminator: open a window FOR a claude code session, with the live session
+# panel docked on the right (terminal left, panel right — iTerm2 style).
+# Only windows you open with this launcher get the panel; plain terminator
+# windows are untouched. Run claude in the left pane, or:
+#   ccpanel -e claude   (starts claude immediately)
+# /usr/bin/terminator directly: DBus delegates ignore -l, hence -u.
+# (A terminator shim would dock the panel in every window — not wanted.)
+set -euo pipefail
+if ! command -v terminator >/dev/null; then
+    echo "ccpanel: terminator not found. Install it (https://gnome-terminator.org)" >&2
+    exit 1
+fi
+
+cfg="${XDG_CONFIG_HOME:-$HOME/.config}/terminator/config"
+if ! grep -q '^[[:space:]]*\[\[ccpanel\]\]' "$cfg" 2>/dev/null; then
+    echo "ccpanel: layout 'ccpanel' not in $cfg — run install.sh from the repo first" >&2
+    exit 1
+fi
+# /usr/bin/terminator directly: DBus delegates ignore -l, hence -u.
+# `-e` on terminator takes ONE argument, so anything after the command
+# (`ccpanel -e claude --model glm-...`) reroutes through terminator's `-x`,
+# which consumes the rest of the line.
+case "${1:-}" in
+    -e)
+        shift
+        exec /usr/bin/terminator -u -l ccpanel -x "$@"
+        ;;
+esac
+exec /usr/bin/terminator -u -l ccpanel "$@"

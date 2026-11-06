@@ -10,10 +10,13 @@ them with the real `claude` processes (/proc):
   - sessions that have not fired a hook yet show as "no hook" (they appear at
     their first hook event).
 
-Inside WezTerm a CLICK on a row jumps to that session
-(`wezterm cli list` -> the pane whose tty matches -> `wezterm cli activate-pane`).
-The row marked with ▶ is the session of this very tab. Outside WezTerm it is a
-read-only panel.
+Across terminals the panel is one best-effort jump away: in WezTerm a CLICK
+activates the exact pane (`wezterm cli list` -> the pane whose tty matches ->
+`wezterm cli activate-pane`); the row marked with ▶ is the session of this very
+tab. Elsewhere (Terminator, gnome-terminal, ...), with `wmctrl` or `xdotool` on
+X11, a CLICK raises the WINDOW that owns the session's pty: no pane-precise
+focus is possible from outside a terminal, and Wayland has no cross-app window
+activation, so those rows stay read-only there.
 
     session_panel.py            interactive panel (q quits), refreshes every second
     session_panel.py --once     print one plain-text snapshot and exit
@@ -116,19 +119,123 @@ def pane_map() -> tuple[dict | None, int | None]:
 
 
 def goto(row: dict, pmap: dict | None) -> str:
-    """Jump to the session's pane. Returns the message for the footer."""
+    """Jump to the session's pane or window. Returns the message for the footer."""
     name = row.get("repo") or "?"
+    tty = row.get("tty")
     if pmap is None:
-        return "not in WezTerm: cannot jump"
-    pane = pmap.get(row.get("tty"))
+        return f"{name}: {raise_window(str(tty or ''))}"
+    pane = pmap.get(tty)
     if not pane:
-        return f"{name}: not in WezTerm ({str(row.get('tty')).replace('/dev/', '')})"
+        return f"{name}: not in WezTerm ({str(tty).replace('/dev/', '')})"
     try:
         r = subprocess.run([wez_bin(), "cli", "activate-pane", "--pane-id", str(pane["pane_id"])],
                            capture_output=True, text=True, timeout=3)
         return f"→ {name}" if r.returncode == 0 else f"jump failed: {r.stderr.strip()[:50]}"
     except Exception as exc:
         return f"jump failed: {exc}"
+
+
+# ---- any-terminal jump: raise the window that owns the session's pty -----------
+
+SHELLS = {"bash", "zsh", "fish", "sh", "dash", "pwsh", "nu", "ion", "elvish", "xonsh"}
+
+
+def wmctrl_rows(text: str) -> list[tuple[str, int, str]]:
+    """Parse `wmctrl -lp` -> [(window id, pid, title)]"""
+    rows = []
+    for line in text.splitlines():
+        parts = line.split(None, 4)
+        if len(parts) >= 4 and parts[0].startswith("0x"):
+            try:
+                # wmctrl prints "id desktop pid hostname [title]"; empty title -> 4 cols
+                rows.append((parts[0], int(parts[2]), " ".join(parts[4:])))
+            except ValueError:
+                continue
+    return rows
+
+
+MAX_RAISE_HOPS = 8      # nearest-first ancestor hops probed for a window owner
+
+
+def _ancestors(pid: int) -> list[int]:
+    """[pid, ppid, pppid, ...] nearest first, up to MAX_RAISE_HOPS hops.
+    Order matters: the terminal sits close to the shell, while desktop
+    daemons (session, panel) sit farther and own their own windows."""
+    out: list[int] = []
+    while pid > 1 and len(out) < MAX_RAISE_HOPS:
+        out.append(pid)
+        try:
+            fields = (Path("/proc") / str(pid) / "stat").read_text().rsplit(") ", 1)[1].split()
+            pid = int(fields[1])                           # ppid after the "(comm) " prefix
+        except (OSError, IndexError, ValueError):
+            break
+    return out
+
+
+def _shell_on_tty(tty: str) -> int | None:
+    """The interactive shell serving this pty: any process whose fd 0 is it,
+    preferring a known shell. Its ancestry chain passes through the terminal."""
+    fallback = None
+    for d in Path("/proc").iterdir():
+        if not d.name.isdigit():
+            continue
+        try:
+            if os.readlink(d / "fd" / "0") != tty:
+                continue
+        except OSError:
+            continue
+        try:
+            if (d / "comm").read_text().strip() in SHELLS:
+                return int(d.name)
+        except OSError:
+            continue
+        fallback = fallback or int(d.name)
+    return fallback
+
+
+def raise_window(tty: str) -> str:
+    """Best-effort raise of the X11 window owning this pty (wmctrl, else xdotool).
+    ponytail: raises the whole window, not the pane (only WezTerm can
+    pane-activate); X11 only — Wayland has no cross-app window activation."""
+    pid = _shell_on_tty(tty) if tty.startswith("/dev/pts/") else None
+    if not pid:
+        return f"no shell on {tty.replace('/dev/', '')}"
+    ancestry = _ancestors(pid)
+    try:
+        env = dict(e.split("=", 1) for e in
+                   (Path("/proc") / str(pid) / "environ").read_bytes().decode("utf-8", "replace").split("\0")
+                   if "=" in e)
+    except OSError:
+        xenv = {k: v for k, v in os.environ.items() if k in ("PATH", "DISPLAY", "XAUTHORITY")}
+    else:
+        xenv = {k: v for k, v in os.environ.items() if k == "PATH"}
+        xenv.update({k: v for k, v in env.items()
+                     if k in ("DISPLAY", "XAUTHORITY", "XDG_RUNTIME_DIR", "DBUS_SESSION_BUS_ADDRESS")})
+    if not xenv.get("DISPLAY"):
+        return "session is not X11 (no DISPLAY) — cannot raise from outside the compositor"
+    try:
+        if shutil.which("wmctrl"):
+            out = subprocess.run(["wmctrl", "-lp"], capture_output=True, text=True, timeout=3, env=xenv)
+            for win, wpid, _title in wmctrl_rows(out.stdout):
+                if wpid in ancestry:
+                    subprocess.run(["wmctrl", "-i", "-a", win], capture_output=True, timeout=3, env=xenv)
+                    return "raised window"
+            return "window not found (terminal holds several windows under one pid?)"
+        if shutil.which("xdotool"):
+            # xdotool matches a single pid per search; nearest ancestor with a
+            # visible window wins (the pane shell has none, the terminal does).
+            for p in ancestry:
+                out = subprocess.run(["xdotool", "search", "--onlyvisible", "--pid", str(p)],
+                                     capture_output=True, text=True, timeout=2, env=xenv)
+                wins = [w for w in out.stdout.split() if w]
+                if wins:
+                    subprocess.run(["xdotool", "windowactivate", wins[0]], capture_output=True,
+                                   timeout=3, env=xenv)
+                    return "raised window"
+            return "window not found"
+        return "install wmctrl or xdotool to raise windows from the panel"
+    except Exception as exc:
+        return f"raise failed: {exc}"
 
 
 # ---- render -------------------------------------------------------------------

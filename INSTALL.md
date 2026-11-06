@@ -188,5 +188,41 @@ changes what a new tab types (default `claude`; e.g. an alias for another
 profile). Jumping works between the panes and tabs of WezTerm; a session that
 runs in another terminal is listed but cannot be jumped to, and under Wayland
 WezTerm is not asked to raise other OS windows — keep your sessions in one
-WezTerm window. `python3 hooks/linux/session_panel.py` also runs standalone,
-anywhere, as a read-only panel.
+WezTerm window.
+
+**Docked panel on the right (Terminator).** On Xfce and any terminator-based
+stack, `install.sh` registers a `ccpanel` profile + layout in
+`~/.config/terminator/config` (backup: `config.bak-cccost`) so the terminal
+and the panel share ONE window, terminal left / panel right, like iTerm2:
+
+```bash
+ccpanel                        # ~/.local/bin/ccpanel, or:
+terminator -l ccpanel          # -u/--no-dbus keeps the layout when an
+                               # instance is already running
+```
+
+To get the panel only in windows that host a claude session, open those
+windows with the `ccpanel` launcher — plain terminator windows are untouched:
+
+```bash
+ccpanel                         # terminal left + panel right; run claude in the left pane
+ccpanel -e claude               # same, starting claude immediately
+ccpanel -e claude --model glm-5.3-flash:cloud   # flags after the command pass through
+```
+
+(Terminator 2.1.5 dropped the old `default_layout` key and its DBus daemon
+ignores `-l`, so the launcher passes `-u` and the layout applies.)
+
+**Panel in any other terminal.** The panel runs standalone in any terminal
+(gnome-terminal, konsole, kitty, ...):
+
+```bash
+python3 ~/.claude/hooks/linux/session_panel.py
+```
+
+Clicking a row jumps best-effort: in WezTerm it activates the exact pane;
+elsewhere, with `wmctrl` or `xdotool` installed on X11, it raises the WINDOW
+that owns the session's pty (tty -> pane shell -> process ancestry). It raises
+the whole window, not the pane — terminals have no remote pane API; under
+Wayland no cross-app window activation exists, so rows stay read-only there.
+Tested with Terminator + xdotool on Xfce/X11.

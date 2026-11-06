@@ -224,8 +224,10 @@ def test_session_panel_render():
 
 
 def test_session_panel_jump_uses_the_wezterm_cli():
-    """Click -> pane whose tty matches -> `wezterm cli activate-pane`; honest messages
-    outside WezTerm or for a session that lives in another terminal."""
+    """Click -> pane whose tty matches -> `wezterm cli activate-pane`; outside
+    WezTerm the jump falls back to the generic window raise (which finds no
+    shell on a fake pty and reports it), with "not in WezTerm" from a WezTerm
+    pmap for a session living in another terminal."""
     import os
     import stat
     if sys.platform == "win32":
@@ -253,7 +255,10 @@ def test_session_panel_jump_uses_the_wezterm_cli():
             assert panel.goto({"repo": "beta", "tty": "/dev/pts/2"}, pmap) == "→ beta"
             assert "cli activate-pane --pane-id 13" in log.read_text()
             assert "not in WezTerm" in panel.goto({"repo": "elsewhere", "tty": "/dev/pts/5"}, pmap)
-            assert panel.goto({"repo": "x", "tty": "/dev/pts/2"}, None) == "not in WezTerm: cannot jump"
+            # outside WezTerm the fallback is the any-terminal raise; /dev/pts/999
+            # does not exist on a real machine, so no shell is found there and the
+            # message stays deterministic (never probes or raises a real window)
+            assert panel.goto({"repo": "x", "tty": "/dev/pts/99999"}, None) == "x: no shell on pts/99999"
             os.environ.pop("WEZTERM_UNIX_SOCKET")
             assert panel.pane_map() == (None, None), "outside WezTerm the panel is read-only"
         finally:

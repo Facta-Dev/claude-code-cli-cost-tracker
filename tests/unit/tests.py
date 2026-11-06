@@ -127,6 +127,24 @@ def test_off_peak_window_semantics():
     assert prices.cost("glm-5.3-flash", tok, None) == 0.075
 
 
+def test_wmctrl_rows_and_ancestry():
+    """The generic (non-WezTerm) jump helpers: wmctrl output parsing and the
+    /proc ancestry walk that links a session's shell to its terminal window."""
+    sys.path.insert(0, str(ROOT / "hooks" / "linux"))
+    from session_panel import _ancestors, wmctrl_rows
+
+    rows = wmctrl_rows("0x03a00004  1 2140  host Termin\n"
+                       "0x03a00007 -1 2140 xterm\n"          # single-word hostname, empty title
+                       "0x03a00008  0 2160 host My Term\n"   # title keeps its spaces
+                       "not a header\n"
+                       "0x03a00009  0 notanint x\n")
+    assert rows == [("0x03a00004", 2140, "Termin"), ("0x03a00007", 2140, ""),
+                    ("0x03a00008", 2160, "My Term")], rows
+    assert len(_ancestors(1)) == 0          # pid 1 is a leaf with no parent
+    me = _ancestors(2)
+    assert len(me) > 0 and 2 in me         # pid 2's chain reaches itself
+
+
 def main() -> int:
     failures = 0
     for name, fn in sorted(globals().items()):

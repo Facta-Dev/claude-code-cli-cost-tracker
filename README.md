@@ -155,8 +155,14 @@ On Linux there is no such panel in the terminal, so the repo ships one. The
 same hook keeps a live record per session; with `CC_TAB_TITLE=1` it also puts
 `🟡 my-repo · working · $2.31` in every tab title, and
 `hooks/linux/session_panel.py` lists **every** running session (state, cost,
-tool in flight, age). Inside WezTerm a click on a row jumps to that session —
-`hooks/linux/ccterm` lays out `claude` plus the panel in every tab. Setup:
+tool in flight, age) and works in any terminal on Linux. A click on a row jumps
+to that session: pane-precise inside WezTerm — `hooks/linux/ccterm` lays out
+`claude` plus the panel in every tab — and outside WezTerm it raises the window
+that owns the session on X11 (needs `wmctrl` or `xdotool`; windows only, no
+terminal has a remote pane API). On Terminator, `install.sh` registers a
+`ccpanel` layout that docks the panel on the right of the same window,
+iTerm2-style: open claude-session windows with `ccpanel` (`-e claude` to start
+claude right away); plain terminator windows stay untouched. Setup:
 [INSTALL.md](INSTALL.md) §3d.
 
 ## Guardrail

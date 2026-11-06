@@ -22,7 +22,46 @@ fi
 cp hooks/session_status.py hooks/session-status.ps1 "$CLAUDE_DIR/hooks/"
 if [ "$(uname -s)" = "Linux" ]; then
   mkdir -p "$CLAUDE_DIR/hooks/linux"
-  cp hooks/linux/session_panel.py hooks/linux/wezterm.lua hooks/linux/ccterm "$CLAUDE_DIR/hooks/linux/"
+  cp hooks/linux/session_panel.py hooks/linux/wezterm.lua hooks/linux/ccterm hooks/linux/ccpanel \
+     "$CLAUDE_DIR/hooks/linux/"
+  cp hooks/linux/ccpanel "$HOME/.local/bin/ccpanel" 2>/dev/null || true
+  chmod +x "$HOME/.local/bin/ccpanel" 2>/dev/null || true
+  # Terminator: register the docked-right layout (terminal left, panel right).
+  # Idempotent INI-aware insert; backs up the user config first.
+  if command -v terminator >/dev/null; then
+    CLAUDE_DIR="$CLAUDE_DIR" python3 <<'PYEOF'
+import os, shutil, sys
+p = os.path.join(os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config"),
+                 "terminator", "config")
+os.makedirs(os.path.dirname(p), exist_ok=True)
+text = open(p).read() if os.path.exists(p) else ""
+if "[[ccpanel]]" not in text:
+    shutil.copy2(p, p + ".bak-cccost") if os.path.exists(p) else None
+    cmd = os.path.join(os.environ["CLAUDE_DIR"], "hooks", "linux", "session_panel.py")
+    prof = '  [[ccpanel]]\n    use_custom_command = True\n    custom_command = python3 %s\n' % cmd
+    lay = ('  [[ccpanel]]\n'
+           '    [[[window0]]]\n      type = Window\n      parent = ""\n'
+           '    [[[panes1]]]\n      type = HPaned\n      parent = window0\n'
+           '    [[[left2]]]\n      type = Terminal\n      parent = panes1\n      order = 0\n      profile = default\n'
+           '    [[[right3]]]\n      type = Terminal\n      parent = panes1\n      order = 1\n      profile = ccpanel\n')
+    out = []
+    done_p = done_l = False
+    for line in text.splitlines(True):
+        out.append(line)
+        if line.strip() == "[profiles]" and not done_p:
+            out.append(prof); done_p = True
+        elif line.strip() == "[layouts]" and not done_l:
+            out.append(lay); done_l = True
+    if not done_p:
+        out.append("[profiles]\n" + prof)
+    if not done_l:
+        out.append("[layouts]\n" + lay)
+    open(p, "w").write("".join(out))
+    print("Terminator: layout 'ccpanel' registered in %s (backup: .bak-cccost)."
+          " Open claude-session windows with `ccpanel` (-e claude to start"
+          " claude right away); other terminator windows stay untouched." % p)
+PYEOF
+  fi
 fi
 
 cat <<EOF
@@ -61,5 +100,11 @@ Linux, optional — per-session state inside the terminal (INSTALL.md 3d):
   * tab title:  add CC_TAB_TITLE=1 to the hook command and set
                 CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1 in settings.json "env"
   * panel of all sessions, click to jump (WezTerm):  $CLAUDE_DIR/hooks/linux/ccterm
+  * same panel in ANY terminal:  python3 $CLAUDE_DIR/hooks/linux/session_panel.py
+    (jump: exact pane in WezTerm; elsewhere it raises the window, X11 + wmctrl/xdotool)
+  * docked panel, terminal left + panel right (Terminator): open claude
+    sessions with `ccpanel` — normal terminator windows stay untouched.
+    `ccpanel -e claude` starts claude right away (terminator 2.1.5 dropped
+    default_layout and ignores -l over DBus, hence the launcher)
 EOF
 fi

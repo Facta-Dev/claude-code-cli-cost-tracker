@@ -5,6 +5,16 @@ prices.json — price changes are sheet edits, not code releases.
 
 ## [Unreleased]
 
+- Any-terminal session panel on Linux: `session_panel.py` stays clickable
+  outside WezTerm — on X11 it raises the window that owns the clicked
+  session's pty (tty -> pane shell -> process ancestry, `wmctrl` or `xdotool`;
+  window-level, not pane-level, outside WezTerm). Terminator gets a docked
+  layout for claude sessions — `install.sh` registers a `ccpanel` profile +
+  layout (terminal left, panel right, iTerm2-style) and a `ccpanel` launcher
+  that opens a session window (`-e claude` to start claude right away); plain
+  terminator windows stay untouched.
+  Unit-tested parsers + ancestry walk; live-verified with Terminator +
+  xdotool on Xfce/X11.
 - Linux per-session status: the unified hook keeps a live record per session
   (`CC_SESSIONS_DIR`) and, with `CC_TAB_TITLE=1`, sets the terminal tab title
   (`🟡 my-repo · working · $2.31`); `hooks/linux/session_panel.py` lists every
