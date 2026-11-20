@@ -230,7 +230,7 @@ def test_session_panel_jump_uses_the_wezterm_cli():
     pmap for a session living in another terminal."""
     import os
     import stat
-    if sys.platform == "win32":
+    if not sys.platform.startswith("linux"):
         return
     with tempfile.TemporaryDirectory() as td:
         log = Path(td) / "calls.log"
