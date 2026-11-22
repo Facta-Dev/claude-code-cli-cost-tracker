@@ -1,5 +1,5 @@
 ---
-name: "<app> Ownership Author"
+name: ownership-author
 description: "Review aliasing, locking, and async-propagation patterns in <app> modules; produce a line-anchored report of shared-state interleaving, lock placement, and port protocol wiring across the slice before the diff lands."
 division: backend
 ---

@@ -1,5 +1,5 @@
 ---
-name: "<app> Add Handler"
+name: add-handler
 description: "Scaffold a new FastAPI route in <app>: pydantic v2 request/response models, envelope mapping, regenerated specs/openapi.yaml entry, route registration in src/app/features/<slug>/module.py, and Deps wiring, as one change across the slice."
 division: backend
 ---

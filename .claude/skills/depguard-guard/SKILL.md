@@ -1,5 +1,5 @@
 ---
-name: "<app> Depguard Guard"
+name: depguard-guard
 description: "Review import boundaries in <app> for hexagonal soundness; flag every domain.py adapter import, slice-to-slice edge, kernel-only violation, otel import, and dynamic-execution import, and block any relaxation of the import-linter contracts in pyproject.toml."
 division: security
 ---

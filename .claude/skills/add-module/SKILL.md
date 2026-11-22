@@ -1,5 +1,5 @@
 ---
-name: "<app> Add Module"
+name: add-module
 description: "Scaffold a new feature slice (src/app/features/<slug>) in <app>: ports.py consumer-owned protocols, usecase.py, module.py register(), Deps wiring in src/app/bin/api.py, hexagonal direction, and the fake-backed test gate, as one change."
 division: backend
 ---
