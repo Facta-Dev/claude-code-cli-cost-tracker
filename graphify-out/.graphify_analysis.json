@@ -1,0 +1,908 @@
+{
+  "communities": {
+    "0": [
+      "analyze_history",
+      "analyze_history_argv",
+      "cccost",
+      "cccost_analysis",
+      "cccost_analysis_build",
+      "cccost_analysis_full_report",
+      "cccost_analysis_list_repos",
+      "cccost_analysis_load_prices",
+      "cccost_analysis_py_path",
+      "cccost_analysis_rationale_1",
+      "cccost_analysis_rationale_133",
+      "cccost_analysis_rationale_141",
+      "cccost_analysis_rationale_160",
+      "cccost_analysis_rationale_22",
+      "cccost_analysis_write_csv",
+      "cccost_cli",
+      "cccost_cli_filter_last",
+      "cccost_cli_main",
+      "cccost_cli_rationale_112",
+      "cccost_merge",
+      "cccost_merge_keep",
+      "cccost_merge_load",
+      "cccost_merge_merge",
+      "cccost_merge_py_path",
+      "cccost_merge_rationale_1",
+      "cccost_merge_rationale_29",
+      "cccost_merge_rationale_45",
+      "cccost_report",
+      "cccost_report_bar",
+      "cccost_report_money",
+      "cccost_report_rationale_1",
+      "cccost_report_report",
+      "cccost_reports",
+      "cccost_reports_bucket_key",
+      "cccost_reports_emit",
+      "cccost_reports_model_rows",
+      "cccost_reports_period_rows",
+      "cccost_reports_rationale_1",
+      "cccost_reports_rationale_112",
+      "cccost_reports_rationale_149",
+      "cccost_reports_rationale_17",
+      "cccost_reports_rationale_35",
+      "cccost_reports_rationale_58",
+      "cccost_reports_render_models",
+      "cccost_reports_render_period",
+      "cccost_reports_render_session",
+      "cccost_reports_session_report_rows",
+      "cccost_reports_unpriced_note",
+      "cccost_transcript",
+      "cccost_transcript_discover",
+      "cccost_transcript_iter_turns",
+      "cccost_transcript_parse_ts",
+      "cccost_transcript_py_datetime",
+      "cccost_transcript_py_path",
+      "cccost_transcript_rationale_1",
+      "cccost_transcript_rationale_106",
+      "cccost_transcript_rationale_21",
+      "cccost_transcript_rationale_79",
+      "cccost_transcript_repo_of"
+    ],
+    "1": [
+      "cccost_billing",
+      "cccost_billing_in_off_peak_window",
+      "cccost_billing_prices",
+      "cccost_billing_prices_cost",
+      "cccost_billing_prices_init",
+      "cccost_billing_prices_resolve",
+      "cccost_billing_py_datetime",
+      "cccost_billing_py_path",
+      "cccost_billing_rationale_1",
+      "cccost_billing_rationale_21",
+      "cccost_billing_rationale_26",
+      "cccost_billing_rationale_51",
+      "cccost_billing_rationale_72",
+      "cccost_billing_rationale_96",
+      "cccost_billing_usage_tokens",
+      "cccost_transcript_rationale_50",
+      "cccost_transcript_turn_from_obj",
+      "tests_unit_tests",
+      "tests_unit_tests_main",
+      "tests_unit_tests_rationale_110",
+      "tests_unit_tests_rationale_17",
+      "tests_unit_tests_rationale_30",
+      "tests_unit_tests_rationale_44",
+      "tests_unit_tests_rationale_57",
+      "tests_unit_tests_rationale_68",
+      "tests_unit_tests_rationale_79",
+      "tests_unit_tests_rationale_93",
+      "tests_unit_tests_test_discover_skips_dangling_symlinks",
+      "tests_unit_tests_test_fast_mode_pricing",
+      "tests_unit_tests_test_fast_without_sheet_row_falls_back",
+      "tests_unit_tests_test_haiku_tier_boundary",
+      "tests_unit_tests_test_off_peak_window_semantics",
+      "tests_unit_tests_test_resolver_pins_real_sheet",
+      "tests_unit_tests_test_speed_number_is_not_fast",
+      "tests_unit_tests_test_usage_token_classes"
+    ],
+    "2": [
+      "changelog",
+      "changelog_0_1_0_2026_10_30",
+      "changelog_changelog",
+      "changelog_unreleased",
+      "contributing",
+      "contributing_commits",
+      "contributing_contributing",
+      "contributing_how_to_work_here",
+      "contributing_invariants_do_not_break_these",
+      "docs_architecture_readme",
+      "docs_architecture_readme_architecture_graphics",
+      "quickstart",
+      "quickstart_1_install",
+      "quickstart_2_turn_on_the_status_line",
+      "quickstart_3_reports",
+      "quickstart_45_seconds_really",
+      "quickstart_quickstart",
+      "readme",
+      "readme_architecture",
+      "readme_caveats",
+      "readme_claude_code_cli_cost_tracker",
+      "readme_credits",
+      "readme_guardrail",
+      "readme_how_billing_works_the_honest_billing_rules",
+      "readme_project",
+      "readme_quickstart",
+      "readme_reduce_costs_further_use_terrain_for_free_context",
+      "readme_reports",
+      "readme_status_line"
+    ],
+    "3": [
+      "hooks_session_status_backend_iterm2",
+      "hooks_session_status_backend_linux",
+      "hooks_session_status_backend_osascript",
+      "hooks_session_status_backend_windows",
+      "hooks_session_status_clip",
+      "hooks_session_status_find_tty",
+      "hooks_session_status_linux_session_status",
+      "hooks_session_status_load_registry",
+      "hooks_session_status_main",
+      "hooks_session_status_py_hooks_session_status",
+      "hooks_session_status_py_hooks_session_status_build_detail",
+      "hooks_session_status_py_hooks_session_status_update_registry",
+      "hooks_session_status_py_path",
+      "hooks_session_status_rationale_138",
+      "hooks_session_status_rationale_155",
+      "hooks_session_status_rationale_177",
+      "hooks_session_status_rationale_216",
+      "hooks_session_status_rationale_230",
+      "hooks_session_status_rationale_243",
+      "hooks_session_status_registry_path",
+      "hooks_session_status_repo_name",
+      "hooks_session_status_save_registry",
+      "hooks_session_status_session_cost",
+      "hooks_session_status_session_cost_value",
+      "hooks_session_status_short",
+      "hooks_session_status_tab_title",
+      "hooks_session_status_update_session_record",
+      "hooks_session_status_what_is_running",
+      "hooks_session_status_write_tab_title"
+    ],
+    "4": [
+      "claude_skills_graphify_skill",
+      "claude_skills_graphify_skill_for_graphify_add_and_watch",
+      "claude_skills_graphify_skill_for_graphify_query",
+      "claude_skills_graphify_skill_for_the_commit_hook_and_native_claude_md_integration",
+      "claude_skills_graphify_skill_for_update_and_cluster_only",
+      "claude_skills_graphify_skill_graphify",
+      "claude_skills_graphify_skill_honesty_rules",
+      "claude_skills_graphify_skill_interpreter_guard_for_subcommands",
+      "claude_skills_graphify_skill_part_a_structural_extraction_for_code_files",
+      "claude_skills_graphify_skill_part_b_semantic_extraction_parallel_subagents",
+      "claude_skills_graphify_skill_part_c_merge_ast_semantic_into_final_extraction",
+      "claude_skills_graphify_skill_step_0_github_repos_and_multi_path_merge_only_if_a_url_or_several_paths",
+      "claude_skills_graphify_skill_step_1_ensure_graphify_is_installed",
+      "claude_skills_graphify_skill_step_2_5_video_and_audio_only_if_video_files_detected",
+      "claude_skills_graphify_skill_step_2_detect_files",
+      "claude_skills_graphify_skill_step_3_extract_entities_and_relationships",
+      "claude_skills_graphify_skill_step_4_5_graph_health_check_read_only_integrity_gate",
+      "claude_skills_graphify_skill_step_4_build_graph_cluster_analyze_generate_outputs",
+      "claude_skills_graphify_skill_step_5_label_communities",
+      "claude_skills_graphify_skill_step_6_generate_obsidian_vault_opt_in_html",
+      "claude_skills_graphify_skill_step_9_save_manifest_update_cost_tracker_clean_up_and_report",
+      "claude_skills_graphify_skill_steps_6b_8_wiki_neo4j_falkordb_svg_graphml_mcp_benchmark_only_on_their_flags",
+      "claude_skills_graphify_skill_usage",
+      "claude_skills_graphify_skill_what_graphify_is_for",
+      "claude_skills_graphify_skill_what_you_must_do_when_invoked"
+    ],
+    "5": [
+      "hooks_linux_session_panel",
+      "hooks_linux_session_panel_age",
+      "hooks_linux_session_panel_ancestors",
+      "hooks_linux_session_panel_build",
+      "hooks_linux_session_panel_claude_procs",
+      "hooks_linux_session_panel_cut",
+      "hooks_linux_session_panel_goto",
+      "hooks_linux_session_panel_load_rows",
+      "hooks_linux_session_panel_main",
+      "hooks_linux_session_panel_pane_map",
+      "hooks_linux_session_panel_raise_window",
+      "hooks_linux_session_panel_rationale_107",
+      "hooks_linux_session_panel_rationale_122",
+      "hooks_linux_session_panel_rationale_144",
+      "hooks_linux_session_panel_rationale_161",
+      "hooks_linux_session_panel_rationale_176",
+      "hooks_linux_session_panel_rationale_197",
+      "hooks_linux_session_panel_rationale_260",
+      "hooks_linux_session_panel_rationale_53",
+      "hooks_linux_session_panel_run",
+      "hooks_linux_session_panel_shell_on_tty",
+      "hooks_linux_session_panel_wez_bin",
+      "hooks_linux_session_panel_wmctrl_rows",
+      "tests_unit_tests_rationale_131",
+      "tests_unit_tests_test_wmctrl_rows_and_ancestry"
+    ],
+    "6": [
+      "completedprocess",
+      "tests_common_cccost",
+      "tests_e2e_tests",
+      "tests_e2e_tests_main",
+      "tests_e2e_tests_rationale_14",
+      "tests_e2e_tests_rationale_200",
+      "tests_e2e_tests_rationale_36",
+      "tests_e2e_tests_rationale_46",
+      "tests_e2e_tests_rationale_56",
+      "tests_e2e_tests_rationale_81",
+      "tests_e2e_tests_rationale_91",
+      "tests_e2e_tests_test_cccost_models_report",
+      "tests_e2e_tests_test_cccost_period_reports",
+      "tests_e2e_tests_test_cccost_report_and_last",
+      "tests_e2e_tests_test_cccost_session_json_and_guardrail",
+      "tests_e2e_tests_test_merge_dedupes_on_ids",
+      "tests_e2e_tests_test_merge_needs_no_repo_and_never_scans_transcripts",
+      "tests_e2e_tests_test_merge_rejects_bad_inputs",
+      "tests_e2e_tests_test_session_status_registry"
+    ],
+    "7": [
+      "tests_integrations_tests",
+      "tests_integrations_tests_load_hook",
+      "tests_integrations_tests_load_panel",
+      "tests_integrations_tests_main",
+      "tests_integrations_tests_rationale_129",
+      "tests_integrations_tests_rationale_143",
+      "tests_integrations_tests_rationale_174",
+      "tests_integrations_tests_rationale_200",
+      "tests_integrations_tests_rationale_227",
+      "tests_integrations_tests_rationale_68",
+      "tests_integrations_tests_rationale_89",
+      "tests_integrations_tests_test_linux_session_record_lifecycle",
+      "tests_integrations_tests_test_linux_tab_title_format",
+      "tests_integrations_tests_test_linux_tab_title_reaches_the_pty",
+      "tests_integrations_tests_test_session_panel_jump_uses_the_wezterm_cli",
+      "tests_integrations_tests_test_session_panel_render",
+      "tests_integrations_tests_test_session_panel_rows_follow_live_processes"
+    ],
+    "8": [
+      "cccost_session_state",
+      "cccost_session_state_bill_new_lines",
+      "cccost_session_state_load_state",
+      "cccost_session_state_py_path",
+      "cccost_session_state_rationale_1",
+      "cccost_session_state_rationale_58",
+      "cccost_session_state_reset_state",
+      "cccost_session_state_save_state",
+      "cccost_session_state_state_path",
+      "statusline",
+      "statusline_bar",
+      "statusline_color",
+      "statusline_main",
+      "statusline_minimal_line",
+      "statusline_render"
+    ],
+    "9": [
+      "tests_common",
+      "tests_common_analyze",
+      "tests_common_rationale_1",
+      "tests_common_read_csv",
+      "tests_common_session_row",
+      "tests_contracts_tests_rationale_32",
+      "tests_contracts_tests_rationale_52",
+      "tests_contracts_tests_test_csv_column_contract",
+      "tests_contracts_tests_test_report_header_contract",
+      "tests_integrations_tests_rationale_17",
+      "tests_integrations_tests_rationale_37",
+      "tests_integrations_tests_rationale_50",
+      "tests_integrations_tests_test_analyzer_billing",
+      "tests_integrations_tests_test_off_peak_discounts_only_ollama",
+      "tests_integrations_tests_test_unpriced_models_named"
+    ],
+    "10": [
+      "install_1_get_the_repo",
+      "install_2_status_line_settings_json",
+      "install_3_reports_cli_slash_command",
+      "install_3b_iterm2_session_status_state_cost_per_session",
+      "install_3c_cross_platform_wiring",
+      "install_3d_linux_state_in_the_tab_title_a_panel_of_all_sessions",
+      "install_4_environment_overrides",
+      "install_5_prices",
+      "install_6_update",
+      "install_7_uninstall",
+      "install_install_manual",
+      "install_md_install",
+      "install_what_gets_installed_where"
+    ],
+    "11": [
+      "hooks_session_status_get_cost",
+      "hooks_session_status_get_regpath",
+      "hooks_session_status_get_runningitem",
+      "hooks_session_status_get_sid",
+      "hooks_session_status_ps1_hooks_session_status",
+      "hooks_session_status_ps1_hooks_session_status_build_detail",
+      "hooks_session_status_ps1_hooks_session_status_update_registry",
+      "hooks_session_status_read_registry",
+      "hooks_session_status_show_windowstoast",
+      "hooks_session_status_write_registry"
+    ],
+    "12": [
+      "claude_skills_graphify_references_exports",
+      "claude_skills_graphify_references_exports_graphify_reference_extra_exports_and_benchmark",
+      "claude_skills_graphify_references_exports_step_6b_wiki_only_if_wiki_flag",
+      "claude_skills_graphify_references_exports_step_7_neo4j_export_only_if_neo4j_or_neo4j_push_flag",
+      "claude_skills_graphify_references_exports_step_7a_falkordb_export_only_if_falkordb_or_falkordb_push_flag",
+      "claude_skills_graphify_references_exports_step_7b_svg_export_only_if_svg_flag",
+      "claude_skills_graphify_references_exports_step_7c_graphml_export_only_if_graphml_flag",
+      "claude_skills_graphify_references_exports_step_7d_mcp_server_only_if_mcp_flag",
+      "claude_skills_graphify_references_exports_step_8_token_reduction_benchmark_only_if_total_words_5000"
+    ],
+    "13": [
+      "tests_common_make_fixture",
+      "tests_common_py_path",
+      "tests_common_run",
+      "tests_e2e_tests_rationale_191",
+      "tests_e2e_tests_rationale_230",
+      "tests_e2e_tests_test_default_projects_dir_follows_claude_config_dir",
+      "tests_e2e_tests_test_statusline_survives_garbage",
+      "tests_integrations_tests_rationale_59",
+      "tests_integrations_tests_test_fixture_regenerates_from_nothing"
+    ],
+    "14": [
+      "tests_common_statusline",
+      "tests_e2e_tests_rationale_107",
+      "tests_e2e_tests_rationale_149",
+      "tests_e2e_tests_rationale_160",
+      "tests_e2e_tests_rationale_174",
+      "tests_e2e_tests_test_statusline_bills_tier_turns",
+      "tests_e2e_tests_test_statusline_flags_unpriced_models",
+      "tests_e2e_tests_test_statusline_payload_cost_wins_when_native",
+      "tests_e2e_tests_test_statusline_self_bills_incrementally"
+    ],
+    "15": [
+      "tests_contracts_tests",
+      "tests_contracts_tests_main",
+      "tests_contracts_tests_rationale_17",
+      "tests_contracts_tests_rationale_25",
+      "tests_contracts_tests_rationale_62",
+      "tests_contracts_tests_test_repo_guardrail",
+      "tests_contracts_tests_test_repo_required",
+      "tests_contracts_tests_test_usage_exit_contract"
+    ],
+    "16": [
+      "tests_make_fixture",
+      "tests_make_fixture_assistant",
+      "tests_make_fixture_fast_usage",
+      "tests_make_fixture_line",
+      "tests_make_fixture_main",
+      "tests_make_fixture_py_path",
+      "tests_make_fixture_rationale_61",
+      "tests_make_fixture_usage"
+    ],
+    "17": [
+      "claude_agents_backend_api_designer",
+      "claude_agents_backend_api_designer_app_api_designer",
+      "claude_agents_backend_api_designer_core_mission",
+      "claude_agents_backend_api_designer_expertise_areas",
+      "claude_agents_backend_api_designer_guiding_principles",
+      "claude_agents_backend_api_designer_output_format",
+      "claude_agents_backend_api_designer_quality_standards"
+    ],
+    "18": [
+      "claude_agents_backend_migration_reviewer",
+      "claude_agents_backend_migration_reviewer_app_migration_reviewer",
+      "claude_agents_backend_migration_reviewer_core_mission",
+      "claude_agents_backend_migration_reviewer_expertise_areas",
+      "claude_agents_backend_migration_reviewer_guiding_principles",
+      "claude_agents_backend_migration_reviewer_output_format",
+      "claude_agents_backend_migration_reviewer_quality_standards"
+    ],
+    "19": [
+      "claude_agents_backend_ownership_reviewer",
+      "claude_agents_backend_ownership_reviewer_app_ownership_reviewer",
+      "claude_agents_backend_ownership_reviewer_core_mission",
+      "claude_agents_backend_ownership_reviewer_expertise_areas",
+      "claude_agents_backend_ownership_reviewer_guiding_principles",
+      "claude_agents_backend_ownership_reviewer_output_format",
+      "claude_agents_backend_ownership_reviewer_quality_standards"
+    ],
+    "20": [
+      "claude_agents_core_architect",
+      "claude_agents_core_architect_app_architect_agent",
+      "claude_agents_core_architect_core_mission",
+      "claude_agents_core_architect_expertise_areas",
+      "claude_agents_core_architect_guiding_principles",
+      "claude_agents_core_architect_output_format",
+      "claude_agents_core_architect_quality_standards"
+    ],
+    "21": [
+      "claude_agents_core_build_resolver",
+      "claude_agents_core_build_resolver_app_build_resolver_agent",
+      "claude_agents_core_build_resolver_core_mission",
+      "claude_agents_core_build_resolver_expertise_areas",
+      "claude_agents_core_build_resolver_guiding_principles",
+      "claude_agents_core_build_resolver_output_format",
+      "claude_agents_core_build_resolver_quality_standards"
+    ],
+    "22": [
+      "claude_agents_core_code_explorer",
+      "claude_agents_core_code_explorer_app_code_explorer_agent",
+      "claude_agents_core_code_explorer_core_mission",
+      "claude_agents_core_code_explorer_expertise_areas",
+      "claude_agents_core_code_explorer_guiding_principles",
+      "claude_agents_core_code_explorer_output_format",
+      "claude_agents_core_code_explorer_quality_standards"
+    ],
+    "23": [
+      "claude_agents_core_code_reviewer",
+      "claude_agents_core_code_reviewer_app_code_reviewer_agent",
+      "claude_agents_core_code_reviewer_core_mission",
+      "claude_agents_core_code_reviewer_expertise_areas",
+      "claude_agents_core_code_reviewer_guiding_principles",
+      "claude_agents_core_code_reviewer_output_format",
+      "claude_agents_core_code_reviewer_quality_standards"
+    ],
+    "24": [
+      "claude_agents_core_planner",
+      "claude_agents_core_planner_app_planner_agent",
+      "claude_agents_core_planner_core_mission",
+      "claude_agents_core_planner_expertise_areas",
+      "claude_agents_core_planner_guiding_principles",
+      "claude_agents_core_planner_output_format",
+      "claude_agents_core_planner_quality_standards"
+    ],
+    "25": [
+      "claude_agents_core_tdd_guide",
+      "claude_agents_core_tdd_guide_app_tdd_guide_agent",
+      "claude_agents_core_tdd_guide_core_mission",
+      "claude_agents_core_tdd_guide_expertise_areas",
+      "claude_agents_core_tdd_guide_guiding_principles",
+      "claude_agents_core_tdd_guide_output_format",
+      "claude_agents_core_tdd_guide_quality_standards"
+    ],
+    "26": [
+      "claude_agents_security_depguard_reviewer",
+      "claude_agents_security_depguard_reviewer_app_depguard_reviewer",
+      "claude_agents_security_depguard_reviewer_core_mission",
+      "claude_agents_security_depguard_reviewer_expertise_areas",
+      "claude_agents_security_depguard_reviewer_guiding_principles",
+      "claude_agents_security_depguard_reviewer_output_format",
+      "claude_agents_security_depguard_reviewer_quality_standards"
+    ],
+    "27": [
+      "claude_agents_testing_test_author",
+      "claude_agents_testing_test_author_app_test_author",
+      "claude_agents_testing_test_author_core_mission",
+      "claude_agents_testing_test_author_expertise_areas",
+      "claude_agents_testing_test_author_guiding_principles",
+      "claude_agents_testing_test_author_output_format",
+      "claude_agents_testing_test_author_quality_standards"
+    ],
+    "28": [
+      "claude_skills_add_handler_skill",
+      "claude_skills_add_handler_skill_app_add_handler",
+      "claude_skills_add_handler_skill_core_principles",
+      "claude_skills_add_handler_skill_output_format",
+      "claude_skills_add_handler_skill_research_references",
+      "claude_skills_add_handler_skill_rules",
+      "claude_skills_add_handler_skill_when_to_activate"
+    ],
+    "29": [
+      "claude_skills_add_module_skill",
+      "claude_skills_add_module_skill_app_add_module",
+      "claude_skills_add_module_skill_core_principles",
+      "claude_skills_add_module_skill_output_format",
+      "claude_skills_add_module_skill_research_references",
+      "claude_skills_add_module_skill_rules",
+      "claude_skills_add_module_skill_when_to_activate"
+    ],
+    "30": [
+      "claude_skills_depguard_guard_skill",
+      "claude_skills_depguard_guard_skill_app_depguard_guard",
+      "claude_skills_depguard_guard_skill_core_principles",
+      "claude_skills_depguard_guard_skill_output_format",
+      "claude_skills_depguard_guard_skill_research_references",
+      "claude_skills_depguard_guard_skill_rules",
+      "claude_skills_depguard_guard_skill_when_to_activate"
+    ],
+    "31": [
+      "claude_skills_learn_skill",
+      "claude_skills_learn_skill_app_learn_skill",
+      "claude_skills_learn_skill_core_principles",
+      "claude_skills_learn_skill_output_format",
+      "claude_skills_learn_skill_research_references",
+      "claude_skills_learn_skill_rules",
+      "claude_skills_learn_skill_when_to_activate"
+    ],
+    "32": [
+      "claude_skills_ownership_author_skill",
+      "claude_skills_ownership_author_skill_app_ownership_author",
+      "claude_skills_ownership_author_skill_core_principles",
+      "claude_skills_ownership_author_skill_output_format",
+      "claude_skills_ownership_author_skill_research_references",
+      "claude_skills_ownership_author_skill_rules",
+      "claude_skills_ownership_author_skill_when_to_activate"
+    ],
+    "33": [
+      "claude_skills_plan_skill",
+      "claude_skills_plan_skill_app_plan_skill",
+      "claude_skills_plan_skill_core_principles",
+      "claude_skills_plan_skill_output_format",
+      "claude_skills_plan_skill_research_references",
+      "claude_skills_plan_skill_rules",
+      "claude_skills_plan_skill_when_to_activate"
+    ],
+    "34": [
+      "claude_skills_review_skill",
+      "claude_skills_review_skill_app_review_skill",
+      "claude_skills_review_skill_core_principles",
+      "claude_skills_review_skill_output_format",
+      "claude_skills_review_skill_research_references",
+      "claude_skills_review_skill_rules",
+      "claude_skills_review_skill_when_to_activate"
+    ],
+    "35": [
+      "claude_skills_ship_skill",
+      "claude_skills_ship_skill_app_ship_skill",
+      "claude_skills_ship_skill_core_principles",
+      "claude_skills_ship_skill_output_format",
+      "claude_skills_ship_skill_research_references",
+      "claude_skills_ship_skill_rules",
+      "claude_skills_ship_skill_when_to_activate"
+    ],
+    "36": [
+      "claude_skills_spec_skill",
+      "claude_skills_spec_skill_app_spec_skill",
+      "claude_skills_spec_skill_core_principles",
+      "claude_skills_spec_skill_output_format",
+      "claude_skills_spec_skill_research_references",
+      "claude_skills_spec_skill_rules",
+      "claude_skills_spec_skill_when_to_activate"
+    ],
+    "37": [
+      "claude_skills_graphify_references_query",
+      "claude_skills_graphify_references_query_for_graphify_explain",
+      "claude_skills_graphify_references_query_for_graphify_path",
+      "claude_skills_graphify_references_query_graphify_reference_query_path_explain",
+      "claude_skills_graphify_references_query_step_0_constrained_query_expansion_required_before_traversal",
+      "claude_skills_graphify_references_query_step_1_traversal"
+    ],
+    "38": [
+      "claude",
+      "claude_claude_code_cli_cost_tracker_agent_instructions",
+      "claude_graphify",
+      "claude_model_routing_claude_code_ollama"
+    ],
+    "39": [
+      "claude_skills_graphify_references_add_watch",
+      "claude_skills_graphify_references_add_watch_for_graphify_add",
+      "claude_skills_graphify_references_add_watch_for_watch",
+      "claude_skills_graphify_references_add_watch_graphify_reference_add_a_url_and_watch_a_folder"
+    ],
+    "40": [
+      "claude_skills_graphify_references_hooks",
+      "claude_skills_graphify_references_hooks_for_git_commit_hook",
+      "claude_skills_graphify_references_hooks_for_native_claude_md_integration",
+      "claude_skills_graphify_references_hooks_graphify_reference_commit_hook_and_native_claude_md_integration"
+    ],
+    "41": [
+      "claude_skills_graphify_references_update",
+      "claude_skills_graphify_references_update_for_cluster_only",
+      "claude_skills_graphify_references_update_for_update_incremental_re_extraction",
+      "claude_skills_graphify_references_update_graphify_reference_incremental_update_and_cluster_only"
+    ],
+    "42": [
+      "scripts_hooks_guard_bash",
+      "scripts_hooks_guard_bash_has",
+      "scripts_hooks_guard_bash_has_i",
+      "scripts_hooks_guard_bash_sh__entry"
+    ],
+    "43": [
+      "claude_commands_add_handler",
+      "claude_commands_add_handler_add_handler",
+      "claude_commands_add_handler_delegate"
+    ],
+    "44": [
+      "claude_commands_add_module",
+      "claude_commands_add_module_add_module",
+      "claude_commands_add_module_delegate"
+    ],
+    "45": [
+      "claude_commands_depguard_guard",
+      "claude_commands_depguard_guard_delegate",
+      "claude_commands_depguard_guard_depguard_guard"
+    ],
+    "46": [
+      "claude_commands_learn",
+      "claude_commands_learn_delegate",
+      "claude_commands_learn_learn"
+    ],
+    "47": [
+      "claude_commands_ownership_author",
+      "claude_commands_ownership_author_delegate",
+      "claude_commands_ownership_author_ownership_author"
+    ],
+    "48": [
+      "claude_commands_plan",
+      "claude_commands_plan_delegate",
+      "claude_commands_plan_plan"
+    ],
+    "49": [
+      "claude_commands_review",
+      "claude_commands_review_delegate",
+      "claude_commands_review_review"
+    ],
+    "50": [
+      "claude_commands_ship",
+      "claude_commands_ship_delegate",
+      "claude_commands_ship_ship"
+    ],
+    "51": [
+      "claude_commands_spec",
+      "claude_commands_spec_delegate",
+      "claude_commands_spec_spec"
+    ],
+    "52": [
+      "claude_skills_graphify_references_github_and_merge",
+      "claude_skills_graphify_references_github_and_merge_graphify_reference_github_clone_and_cross_repo_merge",
+      "claude_skills_graphify_references_github_and_merge_step_0_clone_github_repo_s_only_if_a_github_url_was_given"
+    ],
+    "53": [
+      "claude_skills_graphify_references_transcribe",
+      "claude_skills_graphify_references_transcribe_graphify_reference_transcribe_video_and_audio",
+      "claude_skills_graphify_references_transcribe_step_2_5_transcribe_video_audio_files_only_if_video_files_detected"
+    ],
+    "54": [
+      "hooks_linux_ccterm",
+      "hooks_linux_ccterm__entry",
+      "hooks_linux_ccterm_wezterm_config_file"
+    ],
+    "55": [
+      "hooks_linux_wezterm",
+      "hooks_linux_wezterm_new_claude_tab",
+      "hooks_linux_wezterm_open_claude_layout"
+    ],
+    "56": [
+      "cccost_init",
+      "cccost_init_rationale_1"
+    ],
+    "57": [
+      "claude_claude",
+      "claude_claude_graphify"
+    ],
+    "58": [
+      "claude_readme",
+      "claude_readme_claude_this_repo_s_claude_code_kit"
+    ],
+    "59": [
+      "claude_skills_graphify_references_extraction_spec",
+      "claude_skills_graphify_references_extraction_spec_graphify_reference_extraction_subagent_prompt"
+    ],
+    "60": [
+      "commands_cccost",
+      "commands_cccost_cccost_cost_reports"
+    ],
+    "61": [
+      "hooks_cc_status_with_cost",
+      "hooks_cc_status_with_cost_sh__entry"
+    ],
+    "62": [
+      "hooks_linux_ccpanel",
+      "hooks_linux_ccpanel__entry"
+    ],
+    "63": [
+      "install_sh__entry",
+      "install_sh_install"
+    ],
+    "64": [
+      "tests_test_billing",
+      "tests_test_billing_main"
+    ],
+    "65": [
+      "install_ps1_install"
+    ]
+  },
+  "cohesion": {
+    "0": 0.06545879602571596,
+    "1": 0.09411764705882353,
+    "2": 0.06896551724137931,
+    "3": 0.14039408866995073,
+    "4": 0.08,
+    "5": 0.14666666666666667,
+    "6": 0.14035087719298245,
+    "7": 0.16176470588235295,
+    "8": 0.2,
+    "9": 0.2,
+    "10": 0.15384615384615385,
+    "11": 0.3111111111111111,
+    "12": 0.2222222222222222,
+    "13": 0.25,
+    "14": 0.2222222222222222,
+    "15": 0.25,
+    "16": 0.4642857142857143,
+    "17": 0.2857142857142857,
+    "18": 0.2857142857142857,
+    "19": 0.2857142857142857,
+    "20": 0.2857142857142857,
+    "21": 0.2857142857142857,
+    "22": 0.2857142857142857,
+    "23": 0.2857142857142857,
+    "24": 0.2857142857142857,
+    "25": 0.2857142857142857,
+    "26": 0.2857142857142857,
+    "27": 0.2857142857142857,
+    "28": 0.2857142857142857,
+    "29": 0.2857142857142857,
+    "30": 0.2857142857142857,
+    "31": 0.2857142857142857,
+    "32": 0.2857142857142857,
+    "33": 0.2857142857142857,
+    "34": 0.2857142857142857,
+    "35": 0.2857142857142857,
+    "36": 0.2857142857142857,
+    "37": 0.3333333333333333,
+    "38": 0.5,
+    "39": 0.5,
+    "40": 0.5,
+    "41": 0.5,
+    "42": 0.8333333333333334,
+    "43": 0.6666666666666666,
+    "44": 0.6666666666666666,
+    "45": 0.6666666666666666,
+    "46": 0.6666666666666666,
+    "47": 0.6666666666666666,
+    "48": 0.6666666666666666,
+    "49": 0.6666666666666666,
+    "50": 0.6666666666666666,
+    "51": 0.6666666666666666,
+    "52": 0.6666666666666666,
+    "53": 0.6666666666666666,
+    "54": 0.6666666666666666,
+    "55": 1.3333333333333333,
+    "56": 1.0,
+    "57": 1.0,
+    "58": 1.0,
+    "59": 1.0,
+    "60": 1.0,
+    "61": 1.0,
+    "62": 1.0,
+    "63": 1.0,
+    "64": 1.0,
+    "65": 1.0
+  },
+  "gods": [
+    {
+      "id": "cccost_billing_prices",
+      "label": "Prices",
+      "degree": 15
+    },
+    {
+      "id": "cccost_cli_main",
+      "label": "main()",
+      "degree": 13
+    },
+    {
+      "id": "cccost_billing_usage_tokens",
+      "label": "usage_tokens()",
+      "degree": 12
+    },
+    {
+      "id": "claude_skills_graphify_skill_what_you_must_do_when_invoked",
+      "label": "What You Must Do When Invoked",
+      "degree": 12
+    },
+    {
+      "id": "install_install_manual",
+      "label": "Install manual",
+      "degree": 12
+    },
+    {
+      "id": "cccost_analysis_build",
+      "label": "build()",
+      "degree": 11
+    },
+    {
+      "id": "tests_common_cccost",
+      "label": "cccost()",
+      "degree": 11
+    },
+    {
+      "id": "readme_claude_code_cli_cost_tracker",
+      "label": "claude-code-cli-cost-tracker",
+      "degree": 11
+    },
+    {
+      "id": "tests_common_run",
+      "label": "run()",
+      "degree": 10
+    },
+    {
+      "id": "claude_skills_graphify_skill_graphify",
+      "label": "/graphify",
+      "degree": 10
+    }
+  ],
+  "surprises": [
+    {
+      "source": "test_discover_skips_dangling_symlinks()",
+      "target": "discover()",
+      "source_files": [
+        "tests/unit/tests.py",
+        "cccost/transcript.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "test_wmctrl_rows_and_ancestry()",
+      "target": "wmctrl_rows()",
+      "source_files": [
+        "tests/unit/tests.py",
+        "hooks/linux/session_panel.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    },
+    {
+      "source": "test_wmctrl_rows_and_ancestry()",
+      "target": "_ancestors()",
+      "source_files": [
+        "tests/unit/tests.py",
+        "hooks/linux/session_panel.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    },
+    {
+      "source": "test_off_peak_window_semantics()",
+      "target": "in_off_peak_window()",
+      "source_files": [
+        "tests/unit/tests.py",
+        "cccost/billing.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories"
+    },
+    {
+      "source": "test_fast_mode_pricing()",
+      "target": "usage_tokens()",
+      "source_files": [
+        "tests/unit/tests.py",
+        "cccost/billing.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `test_wmctrl_rows_and_ancestry()` connect `session_panel.py` to `tests.py`?",
+      "why": "High betweenness centrality (0.029) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `Prices` connect `tests.py` to `analysis.py`?",
+      "why": "High betweenness centrality (0.024) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `discover()` connect `analysis.py` to `tests.py`?",
+      "why": "High betweenness centrality (0.014) - this node is a cross-community bridge."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `cccost — shared billing core for the Claude Code cost tracker.  Namespace marker`, `Session/turn analysis shared by the analyzer and the report CLI.  build() turns`, `Return (session rows, turn rows, skipped repo names).` to the rest of the system?",
+      "why": "271 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `analysis.py` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.06545879602571596 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `tests.py` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.09411764705882353 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `claude-code-cli-cost-tracker` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.06896551724137931 - nodes in this community are weakly interconnected."
+    }
+  ]
+}
