@@ -5,3 +5,9 @@ tests/fixtures/projects/
 *.csv
 .DS_Store
 .terrain/
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/install-state.json
+.claude/backups/
+.claude/logs/
+.codegraph/
