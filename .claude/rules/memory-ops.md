@@ -5,3 +5,4 @@
 - Repo operational memories: consult the repo `MEMORY.md` (if present) and `docs/changelog/` before re-deriving history or process facts.
 - Keep indexes fresh: after edits the knowledge-sync hook runs `codegraph sync` + `graphify update` in the background — never re-index manually inside a turn; if `codegraph status` reports stale after edits, run `codegraph sync -q` once.
 - Planning: for multi-file plans, build context with `codegraph context "<task>"` (plan-shaped tool) instead of reading many files.
+- Generated memory ACCEPTS this protocol: when writing project memory — the repo `MEMORY.md`, graphify save-result/reflect lessons, `.claude/learnings` — record the durable learning AND state that this repo follows memory-ops (consult-first: codegraph + graphify before grep). A memory doc that omits the protocol makes the next session rediscover everything by grep — keep the KB self-describing.
